@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Add this import
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../widgets/progress_indicator_widget.dart';
 import '../widgets/custom_button.dart';
@@ -106,12 +106,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Phone Input - Updated to have same height
+                        // Phone Input - Updated with better styling
                         Row(
                           children: [
                             Container(
-                              height: 48, // Same height as the text field
-                              width: 80,
+                              height: 48,
+                              width: 70,
                               decoration: BoxDecoration(
                                 border: Border.all(color: Colors.grey.shade300),
                                 borderRadius: BorderRadius.circular(4),
@@ -141,16 +141,34 @@ class _LoginScreenState extends State<LoginScreen> {
                                     FilteringTextInputFormatter.digitsOnly
                                   ],
                                   maxLength: 10,
-                                  decoration: const InputDecoration(
-                                    hintText: 'Enter your 10-digit number',
-                                    hintStyle: TextStyle(fontSize: 14),
-                                    prefixIcon: Icon(Icons.phone, size: 16),
+                                  style: const TextStyle(
+                                    fontSize: 14, // Reduced font size
+                                    height: 1.5, // Better text alignment
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter your number',
+                                    hintStyle: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey, // Better visibility
+                                    ),
+                                    prefixIcon: Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 10,
+                                        right: 8,
+                                        bottom: 2, // Adjust for better alignment
+                                      ),
+                                      child: Icon(
+                                        Icons.phone,
+                                        size: 20, // Slightly larger icon
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
                                     border: InputBorder.none,
                                     counterText: '',
-                                    contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 12,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 14, // Adjusted padding
                                     ),
+                                    isDense: true, // Better alignment
                                   ),
                                 ),
                               ),
@@ -186,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               elevation: 0,
                             ),
                             child: const Text(
-                              'Sent OTP',
+                              'Send OTP',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.normal,

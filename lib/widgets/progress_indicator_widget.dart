@@ -15,71 +15,76 @@ class ProgressIndicatorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32.0),
-      child: Column(
-        children: [
-          // Progress Bar
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(3, (index) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: 96,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: index < currentStep ? AppColors.primary : AppColors.accent,
-                  borderRadius: BorderRadius.circular(4),
+    final totalSteps = stepNames.length;
+
+    return Column(
+      children: [
+        // Top Row with Icon + Text
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(totalSteps, (index) {
+            final isActive = index == currentStep - 1;
+            final isCompleted = index < currentStep - 1;
+
+            return Column(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? AppColors.primary
+                        : Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isCompleted
+                          ? AppColors.primary
+                          : Colors.grey.shade400,
+                    ),
+                  ),
+                  child: Icon(
+                    stepIcons[index],
+                    color: isActive || isCompleted
+                        ? (isActive ? Colors.white : AppColors.primary)
+                        : Colors.grey,
+                  ),
                 ),
-              );
-            }),
-          ),
-          const SizedBox(height: 16),
-          // Step Icons and Labels
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(3, (index) {
-              final isActive = index == currentStep - 1;
-              final isCompleted = index < currentStep - 1;
-              
-              return Column(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: isActive || isCompleted 
-                          ? AppColors.primary 
-                          : AppColors.accent,
-                      shape: BoxShape.circle,
-                      border: !isActive && !isCompleted 
-                          ? Border.all(color: Colors.grey.shade400)
-                          : null,
-                    ),
-                    child: Icon(
-                      stepIcons[index],
-                      color: isActive || isCompleted 
-                          ? Colors.white 
-                          : Colors.grey.shade600,
-                      size: 24,
-                    ),
+                const SizedBox(height: 8),
+                Text(
+                  stepNames[index],
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isActive
+                        ? AppColors.primary
+                        : Colors.grey.shade600,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    stepNames[index],
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isActive || isCompleted 
-                          ? AppColors.primary 
-                          : AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              );
-            }),
-          ),
-        ],
-      ),
+                ),
+              ],
+            );
+          }),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Bottom Progress Line
+        Row(
+          children: List.generate(totalSteps, (index) {
+            final isFilled = index < currentStep;
+            return Expanded(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isFilled
+                      ? AppColors.primary
+                      : AppColors.accent,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
     );
   }
 }
