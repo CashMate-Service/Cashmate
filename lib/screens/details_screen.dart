@@ -19,7 +19,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _pincodeController = TextEditingController();
   final TextEditingController _loanAmountController = TextEditingController();
-  
+
   String selectedGender = '';
   String selectedEmploymentType = '';
 
@@ -40,7 +40,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                   child: Image.network(
                     'https://www.cashmateonline.com/wp-content/uploads/2023/10/Cashmate-logo.jpg',
                     width: 120,
-                    height: 120,
+                    height: 60,
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -54,8 +54,9 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Center(
+                const SizedBox(height: 24),
+                const Align(
+                  alignment: Alignment.centerLeft,
                   child: Text(
                     'Instant Loan Application',
                     style: TextStyle(
@@ -65,180 +66,189 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Center(
-                  child: Text(
-                    'Enter Your Details',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
+                const SizedBox(height: 24),
+
+                // 📦 Box with shadow for the form
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
-                ),
-                const SizedBox(height: 32),
-                // Form Fields
-                CustomTextField(
-                  label: 'Full Name',
-                  placeholder: 'Enter your full name',
-                  controller: _fullNameController,
-                  isRequired: true,
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Date of Birth',
-                  placeholder: 'Select date of birth',
-                  controller: _dobController,
-                  keyboardType: TextInputType.datetime,
-                  isRequired: true,
-                  suffixIcon: const Icon(Icons.calendar_today, size: 20),
-                ),
-                const SizedBox(height: 16),
-                // Gender Dropdown
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Gender *',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      CustomTextField(
+                        label: 'Full Name',
+                        placeholder: 'Enter your full name',
+                        controller: _fullNameController,
+                        isRequired: true,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: double.infinity,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(8),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        label: 'Date of Birth',
+                        placeholder: 'Select date of birth',
+                        controller: _dobController,
+                        keyboardType: TextInputType.datetime,
+                        isRequired: true,
+                        suffixIcon: const Icon(Icons.calendar_today, size: 20),
                       ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: selectedGender.isEmpty ? null : selectedGender,
-                          hint: const Padding(
-                            padding: EdgeInsets.only(left: 12),
-                            child: Text('Select Gender'),
+                      const SizedBox(height: 16),
+                      // Gender Dropdown
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Gender *',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
-                          items: ['Male', 'Female', 'Other']
-                              .map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 12),
-                                child: Text(value),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: selectedGender.isEmpty ? null : selectedGender,
+                                hint: const Padding(
+                                  padding: EdgeInsets.only(left: 12),
+                                  child: Text('Select Gender'),
+                                ),
+                                items: ['Male', 'Female', 'Other']
+                                    .map((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 12),
+                                      child: Text(value),
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    selectedGender = newValue ?? '';
+                                  });
+                                },
                               ),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              selectedGender = newValue ?? '';
-                            });
-                          },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        label: 'Pancard',
+                        placeholder: 'Enter pancard number',
+                        controller: _pancardController,
+                        isRequired: true,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        label: 'Email Address',
+                        placeholder: 'Enter your email',
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        isRequired: true,
+                        suffixIcon: const Icon(Icons.email, size: 20),
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        label: 'Pincode',
+                        placeholder: 'Enter 6 digit pincode',
+                        controller: _pincodeController,
+                        keyboardType: TextInputType.number,
+                        isRequired: true,
+                        suffixIcon: const Icon(Icons.location_on, size: 20),
+                      ),
+                      const SizedBox(height: 16),
+                      // Employment Type Dropdown
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Employment Type *',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: selectedEmploymentType.isEmpty ? null : selectedEmploymentType,
+                                hint: const Padding(
+                                  padding: EdgeInsets.only(left: 12),
+                                  child: Text('Select employment type'),
+                                ),
+                                items: ['Salaried', 'Self Employed', 'Business']
+                                    .map((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 12),
+                                      child: Text(value),
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    selectedEmploymentType = newValue ?? '';
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        label: 'Desired Loan Amount',
+                        placeholder: 'Enter your desired loan amount',
+                        controller: _loanAmountController,
+                        keyboardType: TextInputType.number,
+                        isRequired: true,
+                        prefixIcon: const Padding(
+                          padding: EdgeInsets.only(left: 12, top: 12),
+                          child: Text('₹', style: TextStyle(fontSize: 16)),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Pancard',
-                  placeholder: 'Enter pancard number',
-                  controller: _pancardController,
-                  isRequired: true,
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Email Address',
-                  placeholder: 'Enter your email',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  isRequired: true,
-                  suffixIcon: const Icon(Icons.email, size: 20),
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Pincode',
-                  placeholder: 'Enter 6 digit pincode',
-                  controller: _pincodeController,
-                  keyboardType: TextInputType.number,
-                  isRequired: true,
-                  suffixIcon: const Icon(Icons.location_on, size: 20),
-                ),
-                const SizedBox(height: 16),
-                // Employment Type Dropdown
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Employment Type *',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
+                      const SizedBox(height: 32),
+                      CustomButton(
+                        text: 'Continue',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const EmploymentScreen(),
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: double.infinity,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: selectedEmploymentType.isEmpty ? null : selectedEmploymentType,
-                          hint: const Padding(
-                            padding: EdgeInsets.only(left: 12),
-                            child: Text('Select employment type'),
-                          ),
-                          items: ['Salaried', 'Self Employed', 'Business']
-                              .map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 12),
-                                child: Text(value),
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              selectedEmploymentType = newValue ?? '';
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Desired Loan Amount',
-                  placeholder: 'Enter your desired loan amount',
-                  controller: _loanAmountController,
-                  keyboardType: TextInputType.number,
-                  isRequired: true,
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.only(left: 12, top: 12),
-                    child: Text('₹', style: TextStyle(fontSize: 16)),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 48),
-                CustomButton(
-                  text: 'Continue',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const EmploymentScreen(),
-                      ),
-                    );
-                  },
                 ),
                 const SizedBox(height: 32),
               ],
