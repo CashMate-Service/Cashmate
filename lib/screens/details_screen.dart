@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/bottom_navigation_widget.dart';
 import '../utils/app_colors.dart';
 import 'employment_screen.dart';
 
@@ -245,6 +246,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
           ),
         ),
       ),
+      bottomNavigationBar: const BottomNavigationWidget(currentIndex: 0),
     );
   }
 
