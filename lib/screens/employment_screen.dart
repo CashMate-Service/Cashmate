@@ -30,7 +30,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
       final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-        withData: true, // Ensures file content is available
+        withData: true,
       );
 
       if (result != null && result.files.isNotEmpty) {
@@ -71,7 +71,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                   child: Image.network(
                     'https://www.cashmateonline.com/wp-content/uploads/2023/10/Cashmate-logo.jpg',
                     width: 120,
-                    height: 120,
+                   height: 60,
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) => 
                       const Icon(Icons.business, size: 80),
@@ -87,7 +87,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
                 const Text(
                   'Employment Details',
                   style: TextStyle(
@@ -97,161 +97,183 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Income and Employment',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Salary Input
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomTextField(
-                      label: 'Net Monthly Salary/Income',
-                      placeholder: 'Enter your monthly income',
-                      controller: _monthlyIncomeController,
-                      keyboardType: TextInputType.number,
-                      isRequired: true,
-                      prefixIcon: const Padding(
-                        padding: EdgeInsets.only(left: 12, top: 12),
-                        child: Text('₹', style: TextStyle(fontSize: 16)),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Minimum income required: ₹15,000',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Company Name
-                CustomTextField(
-                  label: 'Company/Business Name',
-                  placeholder: 'Enter company/business name',
-                  controller: _companyNameController,
-                  isRequired: true,
-                ),
-                const SizedBox(height: 24),
-
-                // Company Code
-                CustomTextField(
-                  label: 'Company Code',
-                  placeholder: 'Enter company code',
-                  controller: _companyCodeController,
-                  isRequired: true,
-                ),
-                const SizedBox(height: 32),
-
-                // File Upload Section
+                
+                // Shadowed Container for the form section
                 Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
-                    color: Colors.grey[100],
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 2,
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: InkWell(
-                    onTap: _isUploading ? null : _pickDocument,
-                    child: Column(
-                      children: [
-                        _isUploading
-                            ? const CircularProgressIndicator()
-                            : const Icon(Icons.upload_file, size: 40, color: Colors.grey),
-                        const SizedBox(height: 8),
-                        Text(
-                          _isUploading ? 'Uploading...' : 'Upload Salary Slip/Bank Statement',
-                          style: const TextStyle(fontWeight: FontWeight.w500),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Income and Employment',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
                         ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'PDF, JPG, PNG (MAX 5MB)',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                        if (_selectedFile != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    _selectedFile!.name,
-                                    style: const TextStyle(
-                                      fontSize: 12, 
-                                      color: Colors.green,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    maxLines: 1,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.close, size: 16),
-                                  onPressed: () => setState(() {
-                                    _selectedFile = null;
-                                  }),
-                                ),
-                              ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Salary Input
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomTextField(
+                            label: 'Net Monthly Salary/Income',
+                            placeholder: 'Enter your monthly income',
+                            controller: _monthlyIncomeController,
+                            keyboardType: TextInputType.number,
+                            isRequired: true,
+                            prefixIcon: const Padding(
+                              padding: EdgeInsets.only(left: 12, top: 12),
+                              child: Text('₹', style: TextStyle(fontSize: 16)),
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Terms Checkbox
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: _agreedToTerms,
-                      onChanged: (value) {
-                        setState(() {
-                          _agreedToTerms = value ?? false;
-                        });
-                      },
-                    ),
-                    Expanded(
-                      child: Text(
-                        'I agree to the Terms and Conditions and confirm that the information provided is accurate.',
-                        style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Minimum income required: ₹15,000',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
+                      const SizedBox(height: 24),
 
-                // Submit Button
-                CustomButton(
-                  text: 'Submit',
-                  onPressed: () {
-                    if (!_agreedToTerms) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please agree to the Terms and Conditions')),
-                      );
-                      return;
-                    }
+                      // Company Name
+                      CustomTextField(
+                        label: 'Company/Business Name',
+                        placeholder: 'Enter company/business name',
+                        controller: _companyNameController,
+                        isRequired: true,
+                      ),
+                      const SizedBox(height: 24),
 
-                    if (_selectedFile == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please upload required documents')),
-                      );
-                      return;
-                    }
+                      // Company Code
+                      CustomTextField(
+                        label: 'Company Code',
+                        placeholder: 'Enter company code',
+                        controller: _companyCodeController,
+                        isRequired: true,
+                      ),
+                      const SizedBox(height: 32),
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ThankYouScreen()),
-                    );
-                  },
+                      // File Upload Section
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.grey[100],
+                        ),
+                        child: InkWell(
+                          onTap: _isUploading ? null : _pickDocument,
+                          child: Column(
+                            children: [
+                              _isUploading
+                                  ? const CircularProgressIndicator()
+                                  : const Icon(Icons.upload_file, size: 40, color: Colors.grey),
+                              const SizedBox(height: 8),
+                              Text(
+                                _isUploading ? 'Uploading...' : 'Upload Salary Slip/Bank Statement',
+                                style: const TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'PDF, JPG, PNG (MAX 5MB)',
+                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                              if (_selectedFile != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          _selectedFile!.name,
+                                          style: const TextStyle(
+                                            fontSize: 12, 
+                                            color: Colors.green,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          maxLines: 1,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.close, size: 16),
+                                        onPressed: () => setState(() {
+                                          _selectedFile = null;
+                                        }),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Terms Checkbox
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Checkbox(
+                            value: _agreedToTerms,
+                            onChanged: (value) {
+                              setState(() {
+                                _agreedToTerms = value ?? false;
+                              });
+                            },
+                          ),
+                          Expanded(
+                            child: Text(
+                              'I agree to the Terms and Conditions and confirm that the information provided is accurate.',
+                              style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Submit Button
+                      CustomButton(
+                        text: 'Submit',
+                        onPressed: () {
+                          if (!_agreedToTerms) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please agree to the Terms and Conditions')),
+                            );
+                            return;
+                          }
+
+                          if (_selectedFile == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please upload required documents')),
+                            );
+                            return;
+                          }
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ThankYouScreen()),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 32),
               ],

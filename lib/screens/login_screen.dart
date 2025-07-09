@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../widgets/progress_indicator_widget.dart';
 import '../widgets/custom_button.dart';
@@ -108,7 +107,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
                         // Phone Input - Updated with better styling
-                        // Phone Input - Updated with better styling
                         Row(
                           children: [
                             Container(
@@ -169,10 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     counterText: '',
                                     contentPadding: const EdgeInsets.symmetric(
                                       vertical: 14, // Adjusted padding
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 14, // Adjusted padding
                                     ),
-                                    isDense: true, // Better alignment
                                     isDense: true, // Better alignment
                                   ),
                                 ),
@@ -209,7 +204,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               elevation: 0,
                             ),
                             child: const Text(
-                              'Send OTP',
                               'Send OTP',
                               style: TextStyle(
                                 fontSize: 14,
