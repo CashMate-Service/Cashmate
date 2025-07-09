@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Add this import
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../widgets/progress_indicator_widget.dart';
 import '../widgets/custom_button.dart';
@@ -14,6 +15,20 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
+  bool _isValidPhoneNumber = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _phoneController.addListener(_validatePhoneNumber);
+  }
+
+  void _validatePhoneNumber() {
+    setState(() {
+      _isValidPhoneNumber = _phoneController.text.length == 10 &&
+          RegExp(r'^[0-9]+$').hasMatch(_phoneController.text);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,12 +106,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Phone Input
+                        // Phone Input - Updated to have same height
                         Row(
                           children: [
                             Container(
+                              height: 48, // Same height as the text field
                               width: 80,
-                              height: 32,
                               decoration: BoxDecoration(
                                 border: Border.all(color: Colors.grey.shade300),
                                 borderRadius: BorderRadius.circular(4),
@@ -114,22 +129,27 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Container(
-                                height: 32,
+                                height: 48,
                                 decoration: BoxDecoration(
                                   border: Border.all(color: Colors.grey.shade300),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: TextField(
                                   controller: _phoneController,
-                                  keyboardType: TextInputType.phone,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly
+                                  ],
+                                  maxLength: 10,
                                   decoration: const InputDecoration(
                                     hintText: 'Enter your 10-digit number',
                                     hintStyle: TextStyle(fontSize: 14),
                                     prefixIcon: Icon(Icons.phone, size: 16),
                                     border: InputBorder.none,
+                                    counterText: '',
                                     contentPadding: EdgeInsets.symmetric(
                                       horizontal: 8,
-                                      vertical: 8,
+                                      vertical: 12,
                                     ),
                                   ),
                                 ),
@@ -141,19 +161,25 @@ class _LoginScreenState extends State<LoginScreen> {
                         // OTP Button
                         SizedBox(
                           width: double.infinity,
-                          height: 32,
+                          height: 48,
                           child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const VerifyScreen(),
-                                ),
-                              );
-                            },
+                            onPressed: _isValidPhoneNumber
+                                ? () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const VerifyScreen(),
+                                      ),
+                                    );
+                                  }
+                                : null,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.secondary,
-                              foregroundColor: Colors.black,
+                              backgroundColor: _isValidPhoneNumber
+                                  ? AppColors.primary
+                                  : AppColors.secondary,
+                              foregroundColor: _isValidPhoneNumber
+                                  ? Colors.white
+                                  : Colors.black,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -215,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 FaIcon(
                                   FontAwesomeIcons.google,
                                   size: 20,
-                                  color: Colors.red,
+                                  color: Colors.blue,
                                 ),
                                 SizedBox(width: 8),
                                 Text(
@@ -255,6 +281,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    _phoneController.removeListener(_validatePhoneNumber);
     _phoneController.dispose();
     super.dispose();
   }
