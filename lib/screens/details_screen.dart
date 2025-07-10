@@ -23,6 +23,33 @@ class _DetailsScreenState extends State<DetailsScreen> {
   String selectedGender = '';
   String selectedEmploymentType = '';
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary, // Header background color
+              onPrimary: Colors.white, // Header text color
+              onSurface: Colors.black, // Body text color
+            ),
+            dialogBackgroundColor: Colors.white, // Background color
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _dobController.text = "${picked.day}/${picked.month}/${picked.year}";
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,13 +119,18 @@ class _DetailsScreenState extends State<DetailsScreen> {
                         isRequired: true,
                       ),
                       const SizedBox(height: 16),
-                      CustomTextField(
-                        label: 'Date of Birth',
-                        placeholder: 'Select date of birth',
-                        controller: _dobController,
-                        keyboardType: TextInputType.datetime,
-                        isRequired: true,
-                        suffixIcon: const Icon(Icons.calendar_today, size: 20),
+                      GestureDetector(
+                        onTap: () => _selectDate(context),
+                        child: AbsorbPointer(
+                          child: CustomTextField(
+                            label: 'Date of Birth',
+                            placeholder: 'Select date of birth',
+                            controller: _dobController,
+                            keyboardType: TextInputType.datetime,
+                            isRequired: true,
+                            suffixIcon: const Icon(Icons.calendar_today, size: 20),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
                       // Gender Dropdown
