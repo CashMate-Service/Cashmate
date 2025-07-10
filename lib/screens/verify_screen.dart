@@ -34,7 +34,8 @@ class _VerifyScreenState extends State<VerifyScreen> {
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 24.0),
                   child: Column(
                     children: [
                       const SizedBox(height: 32),
@@ -116,33 +117,38 @@ class _VerifyScreenState extends State<VerifyScreen> {
                               ),
                               const SizedBox(height: 24),
 
-       PinCodeTextField(
-  appContext: context,
-  length: 6,
-  keyboardType: TextInputType.number,
-  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-  animationType: AnimationType.fade,
-  cursorColor: AppColors.primary,
-  textStyle: const TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w400,
-    color: Colors.black,
-  ),
-  pinTheme: PinTheme(
-    shape: PinCodeFieldShape.box,
-    borderRadius: BorderRadius.circular(8),
-    fieldHeight: 50,
-    fieldWidth: 40,
-    borderWidth: 0.5, // Reduced from 1 to 0.5 for thinner borders
-    activeColor: AppColors.primary,
-    selectedColor: AppColors.primary,
-    inactiveColor: Colors.grey.shade300,
-    activeFillColor: Colors.transparent, // Added to keep background transparent
-    selectedFillColor: Colors.transparent, // Added to keep background transparent
-    inactiveFillColor: Colors.transparent, // Added to keep background transparent
-  ),
-  onChanged: onOtpChange,
-),
+                              PinCodeTextField(
+                                appContext: context,
+                                length: 6,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly
+                                ],
+                                animationType: AnimationType.fade,
+                                cursorColor: AppColors.primary,
+                                textStyle: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black,
+                                ),
+                                pinTheme: PinTheme(
+                                  shape: PinCodeFieldShape.box,
+                                  borderRadius: BorderRadius.circular(8),
+                                  fieldHeight: 45,
+                                  fieldWidth: 40,
+                                  borderWidth: 0.1,
+                                  activeColor: AppColors.primary,
+                                  selectedColor: AppColors.primary,
+                                  inactiveColor: Colors.grey.shade300,
+                                  activeFillColor: Colors
+                                      .transparent, // Added to keep background transparent
+                                  selectedFillColor: Colors
+                                      .transparent, // Added to keep background transparent
+                                  inactiveFillColor: Colors
+                                      .transparent, // Added to keep background transparent
+                                ),
+                                onChanged: onOtpChange,
+                              ),
                               const SizedBox(height: 32),
 
                               // Verify OTP Button
@@ -184,32 +190,32 @@ class _VerifyScreenState extends State<VerifyScreen> {
                               const SizedBox(height: 24),
 
                               // Footer Links
-                           Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    GestureDetector(
-      onTap: () {
-        Navigator.pop(context); // ✅ Navigates back to the mobile entry screen
-      },
-      child: const Text(
-        'Change Number',
-        style: TextStyle(
-          fontSize: 14,
-          color: Colors.blue,
-          
-        ),
-      ),
-    ),
-    const Text(
-      'Resend OTP in 6s',
-      style: TextStyle(
-        fontSize: 14,
-        color: AppColors.textMuted,
-      ),
-    ),
-  ],
-),
-
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.pop(
+                                          context); // ✅ Navigates back to the mobile entry screen
+                                    },
+                                    child: const Text(
+                                      'Change Number',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                  ),
+                                  const Text(
+                                    'Resend OTP in 6s',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: AppColors.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                         ),
