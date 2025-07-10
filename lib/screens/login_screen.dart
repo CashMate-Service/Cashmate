@@ -50,10 +50,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 32),
                 // Progress Indicator
-                ProgressIndicatorWidget(
+                const ProgressIndicatorWidget(
                   currentStep: 1,
-                  stepNames: const ['Mobile', 'Verify', 'Details'],
-                  stepIcons: const [
+                  stepNames: ['Mobile', 'Verify', 'Details'],
+                  stepIcons: [
                     Icons.phone,
                     Icons.check_circle,
                     Icons.description,
