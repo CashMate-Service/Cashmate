@@ -47,10 +47,10 @@ class _VerifyScreenState extends State<VerifyScreen> {
                       ),
                       const SizedBox(height: 16),
                       // Progress Indicator
-                      ProgressIndicatorWidget(
+                      const ProgressIndicatorWidget(
                         currentStep: 2,
-                        stepNames: const ['Mobile', 'Verify', 'Details'],
-                        stepIcons: const [
+                        stepNames: ['Mobile', 'Verify', 'Details'],
+                        stepIcons: [
                           Icons.phone,
                           Icons.check_circle,
                           Icons.description,
