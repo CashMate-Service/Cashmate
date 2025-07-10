@@ -5,21 +5,27 @@ class CustomTextField extends StatelessWidget {
   final String label;
   final String placeholder;
   final TextEditingController controller;
-  final TextInputType keyboardType;
+  final String? Function(String?)? validator;
+  final bool isRequired;
+  final TextInputType? keyboardType;
   final Widget? suffixIcon;
   final Widget? prefixIcon;
-  final bool isRequired;
-  final int maxLines;
+  final bool readOnly;
+  final TextCapitalization textCapitalization;
+  final int? maxLines;
 
   const CustomTextField({
     super.key,
     required this.label,
     required this.placeholder,
     required this.controller,
-    this.keyboardType = TextInputType.text,
+    this.validator,
+    this.isRequired = false,
+    this.keyboardType,
     this.suffixIcon,
     this.prefixIcon,
-    this.isRequired = false,
+    this.readOnly = false,
+    this.textCapitalization = TextCapitalization.none,
     this.maxLines = 1,
   });
 
@@ -28,27 +34,37 @@ class CustomTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          isRequired ? '$label *' : label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+        RichText(
+          text: TextSpan(
+            text: label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              if (isRequired)
+                const TextSpan(
+                  text: ' *',
+                  style: TextStyle(
+                    color: Colors.red,
+                  ),
+                ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: controller,
+          validator: validator,
           keyboardType: keyboardType,
+          readOnly: readOnly,
+          textCapitalization: textCapitalization,
           maxLines: maxLines,
           decoration: InputDecoration(
             hintText: placeholder,
-            hintStyle: const TextStyle(
-              color: Colors.grey,
-              fontSize: 14,
-            ),
-            filled: true,
-            fillColor: Colors.grey.shade50,
+            suffixIcon: suffixIcon,
+            prefixIcon: prefixIcon,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -57,16 +73,12 @@ class CustomTextField extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.primary),
-            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
+              horizontal: 16,
               vertical: 12,
             ),
-            suffixIcon: suffixIcon,
-            prefixIcon: prefixIcon,
           ),
         ),
       ],
