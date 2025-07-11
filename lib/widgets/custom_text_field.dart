@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart';
+import 'package:flutter/services.dart';
 
 class CustomTextField extends StatelessWidget {
   final String label;
@@ -12,7 +12,8 @@ class CustomTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final bool readOnly;
   final TextCapitalization textCapitalization;
-  final int? maxLines;
+  final List<TextInputFormatter>? inputFormatters;
+  final void Function(String)? onChanged;
 
   const CustomTextField({
     super.key,
@@ -26,7 +27,8 @@ class CustomTextField extends StatelessWidget {
     this.prefixIcon,
     this.readOnly = false,
     this.textCapitalization = TextCapitalization.none,
-    this.maxLines = 1,
+    this.inputFormatters,
+    this.onChanged,
   });
 
   @override
@@ -34,24 +36,26 @@ class CustomTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RichText(
-          text: TextSpan(
-            text: label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
+        Row(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
             ),
-            children: [
-              if (isRequired)
-                const TextSpan(
-                  text: ' *',
-                  style: TextStyle(
-                    color: Colors.red,
-                  ),
+            if (isRequired)
+              const Text(
+                ' *',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.red,
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -60,7 +64,8 @@ class CustomTextField extends StatelessWidget {
           keyboardType: keyboardType,
           readOnly: readOnly,
           textCapitalization: textCapitalization,
-          maxLines: maxLines,
+          inputFormatters: inputFormatters,
+          onChanged: onChanged,
           decoration: InputDecoration(
             hintText: placeholder,
             suffixIcon: suffixIcon,
@@ -77,7 +82,7 @@ class CustomTextField extends StatelessWidget {
             fillColor: Colors.grey.shade50,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
-              vertical: 12,
+              vertical: 14,
             ),
           ),
         ),

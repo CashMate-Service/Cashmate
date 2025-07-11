@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import '../widgets/progress_indicator_widget.dart';
 import '../widgets/custom_button.dart';
 import '../utils/app_colors.dart';
@@ -16,6 +19,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   bool _isValidPhoneNumber = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -28,6 +32,63 @@ class _LoginScreenState extends State<LoginScreen> {
       _isValidPhoneNumber = _phoneController.text.length == 10 &&
           RegExp(r'^[0-9]+$').hasMatch(_phoneController.text);
     });
+  }
+
+  Future<void> _sendOtp() async {
+    if (!_isValidPhoneNumber) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:8085/api/v1/auth/send-otp/'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'phoneNumber': _phoneController.text,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // OTP sent successfully, navigate to verify screen
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VerifyScreen(phoneNumber: _phoneController.text),
+            ),
+          );
+        }
+      } else {
+        // Handle error
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to send OTP: ${response.body}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -106,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Phone Input - Updated with better styling
+                        // Phone Input
                         Row(
                           children: [
                             Container(
@@ -142,33 +203,33 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ],
                                   maxLength: 10,
                                   style: const TextStyle(
-                                    fontSize: 14, // Reduced font size
-                                    height: 1.5, // Better text alignment
+                                    fontSize: 14,
+                                    height: 1.5,
                                   ),
                                   decoration: InputDecoration(
                                     hintText: 'Enter your number',
                                     hintStyle: const TextStyle(
                                       fontSize: 14,
-                                      color: Colors.grey, // Better visibility
+                                      color: Colors.grey,
                                     ),
                                     prefixIcon: Padding(
                                       padding: const EdgeInsets.only(
                                         left: 10,
                                         right: 8,
-                                        bottom: 2, // Adjust for better alignment
+                                        bottom: 2,
                                       ),
                                       child: Icon(
                                         Icons.phone,
-                                        size: 20, // Slightly larger icon
+                                        size: 20,
                                         color: Colors.grey.shade600,
                                       ),
                                     ),
                                     border: InputBorder.none,
                                     counterText: '',
                                     contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 14, // Adjusted padding
+                                      vertical: 14,
                                     ),
-                                    isDense: true, // Better alignment
+                                    isDense: true,
                                   ),
                                 ),
                               ),
@@ -181,15 +242,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: double.infinity,
                           height: 48,
                           child: ElevatedButton(
-                            onPressed: _isValidPhoneNumber
-                                ? () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const VerifyScreen(),
-                                      ),
-                                    );
-                                  }
+                            onPressed: _isValidPhoneNumber && !_isLoading
+                                ? _sendOtp
                                 : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: _isValidPhoneNumber
@@ -203,13 +257,22 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               elevation: 0,
                             ),
-                            child: const Text(
-                              'Send OTP',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.normal,
-                              ),
-                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Send OTP',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
                           ),
                         ),
                         const SizedBox(height: 32),
