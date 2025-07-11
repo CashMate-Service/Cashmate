@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:localstorage/localstorage.dart';
 import '../widgets/custom_text_field.dart';
@@ -32,22 +33,24 @@ class _DetailsScreenState extends State<DetailsScreen> {
   bool isSubmitting = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+ 
 
   @override
   void initState() {
     super.initState();
     _fetchUserData();
   }
-      final token=localStorage.getItem('accessToken');
 
   Future<void> _fetchUserData() async {
     try {
+      final token = localStorage.getItem('accessToken');
       final response = await http.get(
         Uri.parse('http://localhost:8085/api/v1/users/me'),
- headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },      );
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -204,16 +207,17 @@ class _DetailsScreenState extends State<DetailsScreen> {
     });
 
     try {
+      final token = localStorage.getItem('accessToken');
       final dob = DateFormat('dd/MM/yyyy').parse(_dobController.text);
       final formattedDob = DateFormat('yyyy-MM-dd').format(dob);
 
       final response = await http.post(
         Uri.parse('http://localhost:8085/api/v1/loan/request'),
- headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-              body: json.encode({
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
           "fullName": _fullNameController.text,
           "dateOfBirth": formattedDob,
           "gender": selectedGender.toLowerCase(),
@@ -244,6 +248,90 @@ class _DetailsScreenState extends State<DetailsScreen> {
         isSubmitting = false;
       });
     }
+  }
+
+  Widget _buildFullNameField() {
+    return CustomTextField(
+      label: 'Full Name',
+      placeholder: 'Enter your full name',
+      controller: _fullNameController,
+      validator: _validateFullName,
+      isRequired: true,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]')),
+      ],
+      onChanged: (value) {
+        if (value.endsWith('  ')) {
+          _fullNameController.text = value.trimRight();
+          _fullNameController.selection = TextSelection.fromPosition(
+            TextPosition(offset: _fullNameController.text.length),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildPancardField() {
+    return CustomTextField(
+      label: 'Pancard',
+      placeholder: 'Enter pancard number (e.g., ABCDE1234F)',
+      controller: _pancardController,
+      validator: _validatePanCard,
+      isRequired: true,
+      textCapitalization: TextCapitalization.characters,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+        LengthLimitingTextInputFormatter(10),
+      ],
+      onChanged: (value) {
+        _pancardController.value = _pancardController.value.copyWith(
+          text: value.toUpperCase(),
+          selection: TextSelection.collapsed(offset: value.length),
+        );
+      },
+    );
+  }
+
+  Widget _buildPincodeField() {
+    return CustomTextField(
+      label: 'Pincode',
+      placeholder: 'Enter 6 digit pincode',
+      controller: _pincodeController,
+      validator: _validatePincode,
+      keyboardType: TextInputType.number,
+      isRequired: true,
+      suffixIcon: const Icon(Icons.location_on, size: 20),
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+        LengthLimitingTextInputFormatter(6),
+      ],
+    );
+  }
+
+  Widget _buildLoanAmountField() {
+    return CustomTextField(
+      label: 'Desired Loan Amount',
+      placeholder: 'Enter your desired loan amount (₹1000-₹10,00,000)',
+      controller: _loanAmountController,
+      validator: _validateLoanAmount,
+      keyboardType: TextInputType.numberWithOptions(decimal: true),
+      isRequired: true,
+      prefixIcon: const Padding(
+        padding: EdgeInsets.only(left: 12, top: 12),
+        child: Text('₹', style: TextStyle(fontSize: 16)),
+      ),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+      ],
+      onChanged: (value) {
+        if (value.startsWith('0') && value.length > 1 && !value.startsWith('0.')) {
+          _loanAmountController.text = value.substring(1);
+          _loanAmountController.selection = TextSelection.fromPosition(
+            TextPosition(offset: _loanAmountController.text.length),
+          );
+        }
+      },
+    );
   }
 
   @override
@@ -316,13 +404,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        CustomTextField(
-                          label: 'Full Name',
-                          placeholder: 'Enter your full name',
-                          controller: _fullNameController,
-                          validator: _validateFullName,
-                          isRequired: true,
-                        ),
+                        _buildFullNameField(),
                         const SizedBox(height: 16),
                         GestureDetector(
                           onTap: () => _selectDate(context),
@@ -386,14 +468,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        CustomTextField(
-                          label: 'Pancard',
-                          placeholder: 'Enter pancard number (e.g., ABCDE1234F)',
-                          controller: _pancardController,
-                          validator: _validatePanCard,
-                          isRequired: true,
-                          textCapitalization: TextCapitalization.characters,
-                        ),
+                        _buildPancardField(),
                         const SizedBox(height: 16),
                         CustomTextField(
                           label: 'Email Address',
@@ -406,15 +481,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                           readOnly: _emailController.text.isNotEmpty,
                         ),
                         const SizedBox(height: 16),
-                        CustomTextField(
-                          label: 'Pincode',
-                          placeholder: 'Enter 6 digit pincode',
-                          controller: _pincodeController,
-                          validator: _validatePincode,
-                          keyboardType: TextInputType.number,
-                          isRequired: true,
-                          suffixIcon: const Icon(Icons.location_on, size: 20),
-                        ),
+                        _buildPincodeField(),
                         const SizedBox(height: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,25 +531,13 @@ class _DetailsScreenState extends State<DetailsScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        CustomTextField(
-                          label: 'Desired Loan Amount',
-                          placeholder: 'Enter your desired loan amount (₹1000-₹10,00,000)',
-                          controller: _loanAmountController,
-                          validator: _validateLoanAmount,
-                          keyboardType: TextInputType.number,
-                          isRequired: true,
-                          prefixIcon: const Padding(
-                            padding: EdgeInsets.only(left: 12, top: 12),
-                            child: Text('₹', style: TextStyle(fontSize: 16)),
-                          ),
-                        ),
+                        _buildLoanAmountField(),
                         const SizedBox(height: 32),
-               CustomButton(
-  text: 'Continue',
-  onPressed: () => _submitForm(),
-  isLoading: isSubmitting,
-),
-
+                        CustomButton(
+                          text: 'Continue',
+                          onPressed: () => _submitForm(),
+                          isLoading: isSubmitting,
+                        ),
                       ],
                     ),
                   ),
