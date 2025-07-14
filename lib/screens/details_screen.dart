@@ -9,6 +9,8 @@ import '../utils/app_colors.dart';
 import 'employment_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+
 import '../utils/show_snackbar.dart';
 
 class DetailsScreen extends StatefulWidget {
@@ -41,43 +43,43 @@ class _DetailsScreenState extends State<DetailsScreen> {
     _fetchUserData();
   }
 
-  Future<void> _fetchUserData() async {
-    try {
-      final token = localStorage.getItem('accessToken');
-      final response = await http.get(
-        Uri.parse('http://localhost:8085/api/v1/users/me'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+    Future<void> _fetchUserData() async {
+      try {
+        final token = localStorage.getItem('accessToken');
+        final response = await http.get(
+          Uri.parse('http://localhost:8085/api/v1/users/me'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['success'] == true) {
-          final user = data['data']['user'];
-          setState(() {
-            _fullNameController.text = user['fullname'] ?? '';
-            if (user['dateOfBirth'] != null) {
-              final dob = DateTime.parse(user['dateOfBirth']);
-              _dobController.text = DateFormat('dd/MM/yyyy').format(dob);
-            }
-            selectedGender = user['gender']?.toLowerCase() ?? '';
-            _pancardController.text = user['pancardNumber'] ?? '';
-            _emailController.text = user['email'] ?? '';
-            _pincodeController.text = user['pinCode'] ?? '';
-            phoneNumber = user['phoneNumber'];
-          });
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          if (data['success'] == true) {
+            final user = data['data']['user'];
+            setState(() {
+              _fullNameController.text = user['fullname'] ?? '';
+              if (user['dateOfBirth'] != null) {
+                final dob = DateTime.parse(user['dateOfBirth']);
+                _dobController.text = DateFormat('dd/MM/yyyy').format(dob);
+              }
+              selectedGender = user['gender']?.toLowerCase() ?? '';
+              _pancardController.text = user['pancardNumber'] ?? '';
+              _emailController.text = user['email'] ?? '';
+              _pincodeController.text = user['pinCode'] ?? '';
+              phoneNumber = user['phoneNumber'];
+            });
+          }
         }
+      } catch (e) {
+        showSnackbar(context, 'Failed to fetch user data');
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
       }
-    } catch (e) {
-      showSnackbar(context, 'Failed to fetch user data');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
-  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
