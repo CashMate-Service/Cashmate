@@ -1,15 +1,15 @@
+import 'package:Cashmate/screens/main_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:localstorage/localstorage.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
-import '../widgets/bottom_navigation_widget.dart';
 import '../utils/app_colors.dart';
-import 'employment_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../utils/show_snackbar.dart';
+import 'package:lottie/lottie.dart';
 
 class DetailsScreen extends StatefulWidget {
   const DetailsScreen({super.key});
@@ -24,28 +24,69 @@ class _DetailsScreenState extends State<DetailsScreen> {
   final TextEditingController _pancardController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _pincodeController = TextEditingController();
-  final TextEditingController _loanAmountController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _otpController = TextEditingController();
 
   String selectedGender = '';
-  String selectedEmploymentType = '';
   String? phoneNumber;
   bool isLoading = true;
   bool isSubmitting = false;
+  bool showPhoneField = false;
+  bool showVerifyButton = false;
+  bool showOtpField = false;
+  bool isPhoneVerified = false;
+  bool isVerifyingOtp = false;
+  bool isSendingOtp = false;
+  String? verifiedPhoneNumber;
+  String otpError = '';
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
- 
 
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
+    _startWithSplash();
+    _phoneController.addListener(_onPhoneChanged);
+  }
+
+  void _onPhoneChanged() {
+    setState(() {
+      showVerifyButton = _phoneController.text.length == 10 &&
+          RegExp(r'^[0-9]+').hasMatch(_phoneController.text);
+      showOtpField = false;
+      otpError = '';
+    });
+  }
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _dobController.dispose();
+    _pancardController.dispose();
+    _emailController.dispose();
+    _pincodeController.dispose();
+    _phoneController.dispose();
+    _otpController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _startWithSplash() async {
+    await Future.wait([
+      Future.delayed(const Duration(seconds: 3)), // Show Lottie at least 2s
+      _fetchUserData(),
+    ]);
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> _fetchUserData() async {
     try {
       final token = localStorage.getItem('accessToken');
       final response = await http.get(
-        Uri.parse('http://localhost:8085/api/v1/users/me'),
+        Uri.parse('https://cash.imvj.one/api/v1/users/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -56,25 +97,103 @@ class _DetailsScreenState extends State<DetailsScreen> {
         final data = json.decode(response.body);
         if (data['success'] == true) {
           final user = data['data']['user'];
-          setState(() {
-            _fullNameController.text = user['fullname'] ?? '';
-            if (user['dateOfBirth'] != null) {
-              final dob = DateTime.parse(user['dateOfBirth']);
-              _dobController.text = DateFormat('dd/MM/yyyy').format(dob);
-            }
-            selectedGender = user['gender']?.toLowerCase() ?? '';
-            _pancardController.text = user['pancardNumber'] ?? '';
-            _emailController.text = user['email'] ?? '';
-            _pincodeController.text = user['pinCode'] ?? '';
-            phoneNumber = user['phoneNumber'];
-          });
+          _fullNameController.text = user['fullname'] ?? '';
+          if (user['dateOfBirth'] != null) {
+            final dob = DateTime.parse(user['dateOfBirth']);
+            _dobController.text = DateFormat('dd/MM/yyyy').format(dob);
+          }
+          selectedGender = user['gender']?.toLowerCase() ?? '';
+          _pancardController.text = user['pancardNumber'] ?? '';
+          _emailController.text = user['email'] ?? '';
+          _pincodeController.text = user['pinCode'] ?? '';
+          phoneNumber = user['phoneNumber'];
+          // Show phone field if email exists and phoneNumber is null
+          showPhoneField = _emailController.text.isNotEmpty &&
+              (phoneNumber == null || phoneNumber!.isEmpty);
         }
       }
     } catch (e) {
       showSnackbar(context, 'Failed to fetch user data');
+    }
+  }
+
+  Future<void> _sendOtp() async {
+    setState(() {
+      isSendingOtp = true;
+    });
+    try {
+      final token = localStorage.getItem('accessToken');
+      final response = await http.post(
+        Uri.parse('https://cash.imvj.one/api/v1/users/change-phone/'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token'
+        },
+        body: jsonEncode(<String, String>{
+          'phoneNumber': _phoneController.text,
+        }),
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          showOtpField = true;
+          otpError = '';
+        });
+        showSnackbar(context, 'OTP sent to your number');
+      } else {
+        showSnackbar(context, 'Oops! That phone number is already taken');
+      }
+    } catch (e) {
+      showSnackbar(context, 'Error sending OTP: $e');
     } finally {
       setState(() {
-        isLoading = false;
+        isSendingOtp = false;
+      });
+    }
+  }
+
+  Future<void> _verifyOtp() async {
+    if (_otpController.text.length != 6) {
+      setState(() {
+        otpError = 'Enter 6 digit OTP';
+      });
+      return;
+    }
+    setState(() {
+      isVerifyingOtp = true;
+    });
+    try {
+      final token = localStorage.getItem('accessToken');
+      final response = await http.put(
+        Uri.parse('https://cash.imvj.one/api/v1/users/change-phone/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+        body: jsonEncode({
+          'phoneNumber': _phoneController.text,
+          'otp': _otpController.text,
+        }),
+      );
+      final responseData = jsonDecode(response.body);
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        setState(() {
+          isPhoneVerified = true;
+          verifiedPhoneNumber = _phoneController.text;
+          showOtpField = false;
+        });
+        showSnackbar(context, 'Phone number verified!');
+      } else {
+        setState(() {
+          otpError = responseData['message'] ?? 'OTP verification failed';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        otpError = 'An error occurred. Please try again.';
+      });
+    } finally {
+      setState(() {
+        isVerifyingOtp = false;
       });
     }
   }
@@ -107,43 +226,34 @@ class _DetailsScreenState extends State<DetailsScreen> {
   }
 
   String? _validateFullName(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Full name is required';
-    }
+    if (value == null || value.isEmpty) return 'Full name is required';
     if (!RegExp(r'^[a-zA-Z ]+$').hasMatch(value)) {
-      return 'Only letters and spaces are allowed';
+      return 'Only letters and spaces allowed';
     }
     return null;
   }
 
   String? _validateDOB(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Date of birth is required';
-    }
-    try {
-      final dob = DateFormat('dd/MM/yyyy').parse(value);
-      final now = DateTime.now();
-      final age = now.year - dob.year;
-      if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
-        if (age - 1 < 18) {
-          return 'You must be at least 18 years old';
-        }
-      } else if (age < 18) {
-        return 'You must be at least 18 years old';
-      }
-      if (dob.isAfter(now)) {
-        return 'Date cannot be in the future';
-      }
-    } catch (e) {
-      return 'Invalid date format (DD/MM/YYYY)';
-    }
-    return null;
+  if (value == null || value.isEmpty) return 'Date of birth is required';
+  try {
+    final dob = DateFormat('dd/MM/yyyy').parse(value);
+    final now = DateTime.now();
+    final age = now.year - dob.year;
+
+    if (now.month < dob.month ||
+        (now.month == dob.month && now.day < dob.day)) {
+      if (age - 1 < 21) return 'You must be at least 21 years old';
+    } else if (age < 21) return 'You must be at least 21 years old';
+
+    if (dob.isAfter(now)) return 'Date cannot be in the future';
+  } catch (e) {
+    return 'Invalid date format (DD/MM/YYYY)';
   }
+  return null;
+}
 
   String? _validatePanCard(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'PAN card number is required';
-    }
+    if (value == null || value.isEmpty) return 'PAN card number is required';
     if (!RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$').hasMatch(value.toUpperCase())) {
       return 'Invalid PAN card format (e.g., ABCDE1234F)';
     }
@@ -151,9 +261,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
   }
 
   String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Email is required';
-    }
+    if (value == null || value.isEmpty) return 'Email is required';
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
       return 'Invalid email format';
     }
@@ -161,58 +269,31 @@ class _DetailsScreenState extends State<DetailsScreen> {
   }
 
   String? _validatePincode(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Pincode is required';
-    }
+    if (value == null || value.isEmpty) return 'Pincode is required';
     if (!RegExp(r'^[1-9][0-9]{5}$').hasMatch(value)) {
-      return 'Invalid Indian pincode (6 digits, no leading zero)';
-    }
-    return null;
-  }
-
-  String? _validateLoanAmount(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Loan amount is required';
-    }
-    final amount = double.tryParse(value);
-    if (amount == null) {
-      return 'Invalid number';
-    }
-    if (amount < 1000) {
-      return 'Minimum amount is ₹1000';
-    }
-    if (amount > 1000000) {
-      return 'Maximum amount is ₹10,00,000';
+      return 'Invalid Indian pincode';
     }
     return null;
   }
 
   Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) {
+    if (!_formKey.currentState!.validate()) return;
+    if (showPhoneField &&
+        (!isPhoneVerified || verifiedPhoneNumber != _phoneController.text)) {
+      showSnackbar(context, 'Please verify your phone number');
       return;
     }
-
-    if (selectedGender.isEmpty) {
-      showSnackbar(context, 'Please select gender');
-      return;
-    }
-
-    if (selectedEmploymentType.isEmpty) {
-      showSnackbar(context, 'Please select employment type');
-      return;
-    }
-
-    setState(() {
-      isSubmitting = true;
-    });
+    setState(() => isSubmitting = true);
 
     try {
       final token = localStorage.getItem('accessToken');
       final dob = DateFormat('dd/MM/yyyy').parse(_dobController.text);
       final formattedDob = DateFormat('yyyy-MM-dd').format(dob);
+      final phoneToSubmit =
+          showPhoneField ? _phoneController.text : phoneNumber;
 
-      final response = await http.post(
-        Uri.parse('http://localhost:8085/api/v1/loan/request'),
+      final response = await http.put(
+        Uri.parse('https://cash.imvj.one/api/v1/users/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -224,122 +305,45 @@ class _DetailsScreenState extends State<DetailsScreen> {
           "pancardNumber": _pancardController.text.toUpperCase(),
           "email": _emailController.text,
           "pinCode": _pincodeController.text,
-          "employmentType": selectedEmploymentType.toLowerCase(),
-          "desiredAmount": double.parse(_loanAmountController.text),
-          "phoneNumber": phoneNumber,
+          "phoneNumber": phoneToSubmit,
         }),
       );
 
       final responseData = json.decode(response.body);
       if (response.statusCode == 200 && responseData['success'] == true) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const EmploymentScreen(),
-          ),
-        );
+        if (mounted) {
+          showSnackbar(context, 'Submitted successfully!');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MainScreen(),
+            ),
+          );
+        }
       } else {
         showSnackbar(context, responseData['message'] ?? 'Submission failed');
       }
     } catch (e) {
       showSnackbar(context, 'An error occurred. Please try again.');
     } finally {
-      setState(() {
-        isSubmitting = false;
-      });
+      if (mounted) {
+        setState(() => isSubmitting = false);
+      }
     }
-  }
-
-  Widget _buildFullNameField() {
-    return CustomTextField(
-      label: 'Full Name',
-      placeholder: 'Enter your full name',
-      controller: _fullNameController,
-      validator: _validateFullName,
-      isRequired: true,
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]')),
-      ],
-      onChanged: (value) {
-        if (value.endsWith('  ')) {
-          _fullNameController.text = value.trimRight();
-          _fullNameController.selection = TextSelection.fromPosition(
-            TextPosition(offset: _fullNameController.text.length),
-          );
-        }
-      },
-    );
-  }
-
-  Widget _buildPancardField() {
-    return CustomTextField(
-      label: 'Pancard',
-      placeholder: 'Enter pancard number (e.g., ABCDE1234F)',
-      controller: _pancardController,
-      validator: _validatePanCard,
-      isRequired: true,
-      textCapitalization: TextCapitalization.characters,
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
-        LengthLimitingTextInputFormatter(10),
-      ],
-      onChanged: (value) {
-        _pancardController.value = _pancardController.value.copyWith(
-          text: value.toUpperCase(),
-          selection: TextSelection.collapsed(offset: value.length),
-        );
-      },
-    );
-  }
-
-  Widget _buildPincodeField() {
-    return CustomTextField(
-      label: 'Pincode',
-      placeholder: 'Enter 6 digit pincode',
-      controller: _pincodeController,
-      validator: _validatePincode,
-      keyboardType: TextInputType.number,
-      isRequired: true,
-      suffixIcon: const Icon(Icons.location_on, size: 20),
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(6),
-      ],
-    );
-  }
-
-  Widget _buildLoanAmountField() {
-    return CustomTextField(
-      label: 'Desired Loan Amount',
-      placeholder: 'Enter your desired loan amount (₹1000-₹10,00,000)',
-      controller: _loanAmountController,
-      validator: _validateLoanAmount,
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
-      isRequired: true,
-      prefixIcon: const Padding(
-        padding: EdgeInsets.only(left: 12, top: 12),
-        child: Text('₹', style: TextStyle(fontSize: 16)),
-      ),
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-      ],
-      onChanged: (value) {
-        if (value.startsWith('0') && value.length > 1 && !value.startsWith('0.')) {
-          _loanAmountController.text = value.substring(1);
-          _loanAmountController.selection = TextSelection.fromPosition(
-            TextPosition(offset: _loanAmountController.text.length),
-          );
-        }
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
+      return Scaffold(
+        backgroundColor: Colors.white,
         body: Center(
-          child: CircularProgressIndicator(),
+          child: Lottie.asset(
+            'assets/lottie/Money.json',
+            width: 200,
+            height: 200,
+            fit: BoxFit.contain,
+          ),
         ),
       );
     }
@@ -348,218 +352,182 @@ class _DetailsScreenState extends State<DetailsScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 32),
-                  Center(
-                    child: Image.network(
-                      'https://www.cashmateonline.com/wp-content/uploads/2023/10/Cashmate-logo.jpg',
-                      width: 120,
-                      height: 60,
-                      fit: BoxFit.contain,
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                Image.asset(
+                  'assets/image/Cashmate-logo.jpg',
+                  height: 120,
+                ),
+                const SizedBox(height: 24),
+                CustomTextField(
+                  label: 'Full Name',
+                  placeholder: 'Enter your full name',
+                  controller: _fullNameController,
+                  validator: _validateFullName,
+                  isRequired: true,
+                ),
+                const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: () => _selectDate(context),
+                  child: AbsorbPointer(
+                    child: CustomTextField(
+                      label: 'Date of Birth',
+                      placeholder: 'Select date of birth',
+                      controller: _dobController,
+                      validator: _validateDOB,
+                      isRequired: true,
+                      suffixIcon: const Icon(Icons.calendar_today, size: 20),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Center(
-                    child: Text(
-                      'Start Your Loan Journey Today',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedGender.isNotEmpty ? selectedGender : null,
+                  decoration: const InputDecoration(
+                    labelText: 'Gender *',
+                    border: OutlineInputBorder(),
                   ),
-                  const SizedBox(height: 24),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Instant Loan Application',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
+                  items: ['Male', 'Female', 'Other']
+                      .map((e) => DropdownMenuItem(
+                            value: e.toLowerCase(),
+                            child: Text(e),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() => selectedGender = value ?? '');
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select your gender';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  label: 'PAN Card',
+                  placeholder: 'ABCDE1234F',
+                  controller: _pancardController,
+                  validator: _validatePanCard,
+                  isRequired: true,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  label: 'Email',
+                  placeholder: 'Enter email',
+                  controller: _emailController,
+                  validator: _validateEmail,
+                  isRequired: true,
+                ),
+                const SizedBox(height: 16),
+                if (showPhoneField) ...[
+                  CustomTextField(
+                    label: 'Phone Number',
+                    placeholder: 'Enter phone number',
+                    controller: _phoneController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return 'Phone number is required';
+                      if (!RegExp(r'^[0-9]{10}').hasMatch(value))
+                        return 'Enter valid 10 digit number';
+                      return null;
+                    },
+                    isRequired: true,
+                    keyboardType: TextInputType.number,
+                    suffixIcon: isPhoneVerified
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : null,
                   ),
-                  const SizedBox(height: 24),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.15),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        _buildFullNameField(),
-                        const SizedBox(height: 16),
-                        GestureDetector(
-                          onTap: () => _selectDate(context),
-                          child: AbsorbPointer(
-                            child: CustomTextField(
-                              label: 'Date of Birth',
-                              placeholder: 'Select date of birth',
-                              controller: _dobController,
-                              validator: _validateDOB,
-                              isRequired: true,
-                              suffixIcon: const Icon(Icons.calendar_today, size: 20),
+                  if (!isPhoneVerified && showVerifyButton)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
+                          onPressed: isSendingOtp ? null : _sendOtp,
+                          child: isSendingOtp
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2))
+                              : const Text('Verify'),
                         ),
-                        const SizedBox(height: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Gender *',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              width: double.infinity,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade50,
-                                border: Border.all(color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: selectedGender.isEmpty ? null : selectedGender,
-                                  hint: const Padding(
-                                    padding: EdgeInsets.only(left: 12),
-                                    child: Text('Select Gender'),
-                                  ),
-                                  items: ['Male', 'Female', 'Other']
-                                      .map((String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value.toLowerCase(),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(left: 12),
-                                        child: Text(value),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      selectedGender = newValue ?? '';
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        _buildPancardField(),
-                        const SizedBox(height: 16),
-                        CustomTextField(
-                          label: 'Email Address',
-                          placeholder: 'Enter your email',
-                          controller: _emailController,
-                          validator: _validateEmail,
-                          keyboardType: TextInputType.emailAddress,
-                          isRequired: true,
-                          suffixIcon: const Icon(Icons.email, size: 20),
-                          readOnly: _emailController.text.isNotEmpty,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildPincodeField(),
-                        const SizedBox(height: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Employment Type *',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              width: double.infinity,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade50,
-                                border: Border.all(color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: selectedEmploymentType.isEmpty ? null : selectedEmploymentType,
-                                  hint: const Padding(
-                                    padding: EdgeInsets.only(left: 12),
-                                    child: Text('Select employment type'),
-                                  ),
-                                  items: ['Salaried', 'Self Employed', 'Business']
-                                      .map((String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value.toLowerCase().replaceAll(' ', '_'),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(left: 12),
-                                        child: Text(value),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      selectedEmploymentType = newValue ?? '';
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        _buildLoanAmountField(),
-                        const SizedBox(height: 32),
-                        CustomButton(
-                          text: 'Continue',
-                          onPressed: () => _submitForm(),
-                          isLoading: isSubmitting,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
+                  if (showOtpField && !isPhoneVerified)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomTextField(
+                            label: 'Enter OTP',
+                            placeholder: '6 digit code',
+                            controller: _otpController,
+                            keyboardType: TextInputType.number,
+                            isRequired: true,
+                          ),
+                          if (otpError.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text(otpError,
+                                  style: const TextStyle(color: Colors.red)),
+                            ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: isVerifyingOtp ? null : _verifyOtp,
+                              child: isVerifyingOtp
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2))
+                                  : const Text('Verify OTP'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
-              ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  label: 'Pincode',
+                  placeholder: 'Enter pincode',
+                  controller: _pincodeController,
+                  validator: _validatePincode,
+                  isRequired: true,
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 24),
+                CustomButton(
+                  text: 'Continue',
+                  onPressed: _submitForm,
+                  isLoading: isSubmitting,
+                ),
+              ],
             ),
           ),
         ),
       ),
-      bottomNavigationBar: const BottomNavigationWidget(currentIndex: 0),
     );
-  }
-
-  @override
-  void dispose() {
-    _fullNameController.dispose();
-    _dobController.dispose();
-    _pancardController.dispose();
-    _emailController.dispose();
-    _pincodeController.dispose();
-    _loanAmountController.dispose();
-    super.dispose();
   }
 }

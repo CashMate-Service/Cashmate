@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "792116662636",
+    "project_id": "cashmate-app-2bc3f",
+    "storage_bucket": "cashmate-app-2bc3f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:792116662636:android:e303e68ccd806a6cc9a349",
+        "android_client_info": {
+          "package_name": "com.cashmate.loan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "792116662636-5d9t6uqtl5k1vg9j2pm02r0asdpiclgu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cashmate.loan",
+            "certificate_hash": "77d4a812a48ecc398ff9b21d0a533b817001169a"
+          }
+        },
+        {
+          "client_id": "792116662636-dhhjr6u8uk4cee1l99u539nlag85pgi1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cashmate.loan",
+            "certificate_hash": "791210e4e4e65f7738d189e5f9a977f26540bc57"
+          }
+        },
+        {
+          "client_id": "792116662636-hghcv3gnu17jcqc6qeon99bjbbru0e7n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cashmate.loan",
+            "certificate_hash": "a9371d79e618b240f85c88d467ae19b7e92afbd8"
+          }
+        },
+        {
+          "client_id": "792116662636-k0i4t14o983o376bcb2dausnqgcrcdg4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLdTIWxg9Vto1IfSFNCpYkIGJCJkWwRK8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "792116662636-k0i4t14o983o376bcb2dausnqgcrcdg4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,11 +1,18 @@
+// import 'package:cashmate_loan_app/screens/details_screen.dart';
+import 'package:Cashmate/screens/details_screen.dart';
+import 'package:Cashmate/screens/main_screen.dart';
+// import 'package:Cashmate/utils/show_snackbar.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:localstorage/localstorage.dart';
+
 import '../widgets/progress_indicator_widget.dart';
-import '../widgets/custom_button.dart';
 import '../utils/app_colors.dart';
 import 'verify_screen.dart';
 
@@ -16,15 +23,23 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+// final GoogleSignIn _googleSignIn = GoogleSignIn(
+//   scopes: ['email'],
+// );
+
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
+  // final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _isValidPhoneNumber = false;
   bool _isLoading = false;
+  // bool _isCheckingLogin = true;
 
   @override
   void initState() {
     super.initState();
+    // _fetchUserData();
     _phoneController.addListener(_validatePhoneNumber);
+    // _googleSignIn.scopes(['email', 'profile']);
   }
 
   void _validatePhoneNumber() {
@@ -43,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8085/api/v1/auth/send-otp/'),
+        Uri.parse('https://cash.imvj.one/api/v1/auth/send-otp/'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -53,12 +68,13 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.statusCode == 200) {
-        // OTP sent successfully, navigate to verify screen
+        // OTP sent successfully, navigate to erify screen
         if (mounted) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => VerifyScreen(phoneNumber: _phoneController.text),
+              builder: (context) =>
+                  VerifyScreen(phoneNumber: _phoneController.text),
             ),
           );
         }
@@ -91,6 +107,70 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email'],
+  );
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      await _googleSignIn.signOut();
+      final account = await _googleSignIn.signIn();
+      final auth = await account?.authentication;
+      final idToken = auth?.idToken;
+
+      if (idToken == null) throw Exception("No ID token received");
+      print('Google ID Token: $idToken');
+
+      // 🔥 Send token to backend
+      final response = await http.post(
+        Uri.parse(
+            'https://cash.imvj.one/api/v1/auth/google-login'), // <-- update this
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id_token': idToken}),
+      );
+      final res = jsonDecode(response.body);
+      if (res['success'] == true && res['data'] != null) {
+        final accessToken = res['data']['token']['accessToken'];
+        await initLocalStorage();
+        localStorage.setItem('accessToken', accessToken);
+
+        if (res['data']['user']['fullName'] != null){
+           Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MainScreen(),
+          ),
+        );
+        } else {
+          // User not found, navigate to details screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const DetailsScreen(),
+            ),
+          );
+        }
+      } else {
+        throw Exception('Backend error: ${response.body}');
+      } 
+    } catch (e) {
+      debugPrint('Sign-in error: $e');
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text('Sign-in failed: $e')),
+      // );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+
+  // void _showError(String msg) {
+  //   if (!mounted) return;
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text(msg), backgroundColor: Colors.red),
+  //   );
+  // }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,27 +181,24 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               children: [
-                const SizedBox(height: 64),
-                // Logo
-                Image.network(
-                  'https://www.cashmateonline.com/wp-content/uploads/2023/10/Cashmate-logo.jpg',
+                const SizedBox(height: 10),
+                Image.asset(
+                  'assets/image/Cashmate-logo.jpg',
                   width: 190,
-                  height: 189,
+                  height: 150,
                   fit: BoxFit.contain,
                 ),
-                const SizedBox(height: 32),
-                // Progress Indicator
+                // const SizedBox(height: 20),
                 const ProgressIndicatorWidget(
                   currentStep: 1,
-                  stepNames: ['Mobile', 'Verify', 'Details'],
-                  stepIcons: [
+                  stepNames: const ['Mobile', 'Verify', 'Details'],
+                  stepIcons: const [
                     Icons.phone,
                     Icons.check_circle,
                     Icons.description,
                   ],
                 ),
                 const SizedBox(height: 32),
-                // Login Card
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -192,7 +269,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Container(
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey.shade300),
+                                  border:
+                                      Border.all(color: Colors.grey.shade300),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: TextField(
@@ -237,7 +315,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                         const SizedBox(height: 24),
-                        // OTP Button
                         SizedBox(
                           width: double.infinity,
                           height: 48,
@@ -276,7 +353,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 32),
-                        // Divider
                         Row(
                           children: [
                             Expanded(
@@ -304,12 +380,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                         const SizedBox(height: 24),
-                        // Google Button
                         SizedBox(
                           width: double.infinity,
                           height: 40,
                           child: OutlinedButton(
-                            onPressed: () {},
+                            onPressed: _isLoading ? null : _handleGoogleSignIn,
                             style: OutlinedButton.styleFrom(
                               side: BorderSide(color: Colors.grey.shade300),
                               shape: RoundedRectangleBorder(
@@ -338,7 +413,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Terms and Conditions
                         const Text(
                           'By continuing, you agree to our Terms and Conditions\nand Privacy Policy',
                           style: TextStyle(
@@ -352,6 +426,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 30),
               ],
             ),
           ),

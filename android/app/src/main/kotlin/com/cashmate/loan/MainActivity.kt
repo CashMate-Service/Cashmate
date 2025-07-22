@@ -1,4 +1,4 @@
-package com.example.cashmate_loan_app
+package com.cashmate.loan
 
 import io.flutter.embedding.android.FlutterActivity
 

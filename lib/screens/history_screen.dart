@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../utils/app_colors.dart';
-import '../widgets/bottom_navigation_widget.dart';
+// import '../widgets/bottom_navigation_widget.dart';
 import 'package:localstorage/localstorage.dart';
-
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -24,16 +23,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
     fetchLoanRequests();
   }
 
-      final token=localStorage.getItem('accessToken');
+  final token = localStorage.getItem('accessToken');
 
   Future<void> fetchLoanRequests() async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8085/api/v1/loan/request'),
-         headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
+        Uri.parse('https://cash.imvj.one/api/v1/loan/request'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
       );
 
       if (response.statusCode == 200) {
@@ -65,6 +64,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -72,11 +73,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
           children: [
             const SizedBox(height: 32),
             // Logo
-            Image.network(
-              'https://www.cashmateonline.com/wp-content/uploads/2023/10/Cashmate-logo.jpg',
-              width: 120,
-              height: 120,
+            Image.asset(
+              'assets/image/Cashmate-logo.jpg',
+              width: width * 0.5,
               fit: BoxFit.contain,
+              height: 120,
+              // fit: BoxFit.contain,
             ),
             const SizedBox(height: 16),
             const Text(
@@ -106,7 +108,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const BottomNavigationWidget(currentIndex: 1),
+      // bottomNavigationBar: const BottomNavigationWidget(currentIndex: 1),
     );
   }
 
@@ -149,9 +151,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 offset: const Offset(0, 2),
               )
             ],
-          
           ),
-          
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -187,7 +187,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                '₹ ${loan['desiredAmount']}',
+                ' ${loan['desiredAmount']}',
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -200,8 +200,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
               _buildDetailRow('Status:', loan['status']),
               const SizedBox(height: 12),
               _buildDetailRow('Applied On:', _formatDate(loan['createdAt'])),
-              const SizedBox(height: 12),
-              _buildDetailRow('Employment Type:', loan['employmentType']),
+              // const SizedBox(height: 12),
+              // _buildDetailRow('Employment Type:', loan['employmentType']),
             ],
           ),
         );

@@ -1,3 +1,4 @@
+import 'package:Cashmate/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import '../widgets/bottom_navigation_widget.dart';
 import '../utils/app_colors.dart';
@@ -38,7 +39,7 @@ class _ThankYouScreenState extends State<ThankYouScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const HistoryScreen(),
+            builder: (context) => const MainScreen(),
           ),
         );
       }
@@ -52,11 +53,11 @@ class _ThankYouScreenState extends State<ThankYouScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 32),
+            const SizedBox(height: 40),
             // Logo
-            Image.network(
-              'https://www.cashmateonline.com/wp-content/uploads/2023/10/Cashmate-logo.jpg',
-              width: 120,
+            Image.asset(
+              'assets/image/Cashmate-logo.jpg',
+              width: 140,
               height: 120,
               fit: BoxFit.contain,
             ),
@@ -186,7 +187,36 @@ class _ThankYouScreenState extends State<ThankYouScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const BottomNavigationWidget(currentIndex: 0),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const MainScreen()),
+              );
+            },
+            child: const Text(
+              'Go to Home',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+      ),
+      // bottomNavigationBar: const BottomNavigationWidget(currentIndex: 0),
     );
   }
 }

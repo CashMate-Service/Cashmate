@@ -1,9 +1,18 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'screens/login_screen.dart';
-import 'utils/app_colors.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-void main() {
+import 'screens/login_screen.dart';
+import 'screens/main_screen.dart';
+import 'screens/details_screen.dart';
+import 'utils/app_colors.dart';
+import 'package:localstorage/localstorage.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const CashMateApp());
 }
 
@@ -26,7 +35,96 @@ class CashMateApp extends StatelessWidget {
           iconTheme: IconThemeData(color: Colors.black),
         ),
       ),
-      home: const LoginScreen(),
+      home: const SplashScreen(),
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  // final LocalStorage storage = LocalStorage('cashmate_app');
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    await initLocalStorage();
+    final token = localStorage.getItem('accessToken');
+     
+    if (token != null) {
+      print('Token found: $token');
+      try {
+        final response = await http.get(
+          Uri.parse('https://cash.imvj.one/api/v1/users/me'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          final user = data['data']['user'];
+
+          final isProfileComplete = user['fullname'] != null &&
+              user['dateOfBirth'] != null &&
+              user['gender'] != null &&
+              user['pancardNumber'] != null &&
+              user['email'] != null &&
+              user['pinCode'] != null &&
+              user['phoneNumber'] != null;
+
+          await Future.delayed(const Duration(seconds: 1));
+
+          if (!mounted) return;
+
+          if (isProfileComplete) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const MainScreen()),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const DetailsScreen()),
+            );
+          }
+          return;
+        }
+      } catch (e) {
+        // handle fetch errors (e.g., network, token expired)
+      }
+    }
+
+    // fallback to login
+    await Future.delayed(const Duration(seconds: 1));
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Image.asset(
+          'assets/image/Cashmate-logo.jpg', // replace with your actual logo
+          width: 200,
+          height: 200,
+        ),
+      ),
     );
   }
 }
