@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 
-import 'package:Cashmate/screens/dashboard_screen.dart';
-import 'package:Cashmate/screens/history_screen.dart';
-import 'package:Cashmate/screens/profile_screen.dart';
+import 'package:cashmate/screens/dashboard_screen.dart';
+import 'package:cashmate/screens/history_screen.dart';
+import 'package:cashmate/screens/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

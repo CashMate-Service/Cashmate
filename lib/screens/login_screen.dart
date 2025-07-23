@@ -1,7 +1,7 @@
 // import 'package:cashmate_loan_app/screens/details_screen.dart';
-import 'package:Cashmate/screens/details_screen.dart';
-import 'package:Cashmate/screens/main_screen.dart';
-// import 'package:Cashmate/utils/show_snackbar.dart';
+import 'package:cashmate/screens/details_screen.dart';
+import 'package:cashmate/screens/main_screen.dart';
+// import 'package:cashmate/utils/show_snackbar.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

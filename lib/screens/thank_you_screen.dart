@@ -1,4 +1,4 @@
-import 'package:Cashmate/screens/main_screen.dart';
+import 'package:cashmate/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import '../widgets/bottom_navigation_widget.dart';
 import '../utils/app_colors.dart';

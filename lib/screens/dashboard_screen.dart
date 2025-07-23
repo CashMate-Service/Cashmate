@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:Cashmate/screens/employment_screen.dart';
+import 'package:cashmate/screens/employment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
