@@ -48,7 +48,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> with SingleTickerProv
       
       // Fetch personal info
       final personalResponse = await http.get(
-        Uri.parse('http://localhost:8085/api/v1/users/me'),
+        Uri.parse('http://cash.imvj.one/api/v1/users/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -77,7 +77,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> with SingleTickerProv
       
       // Fetch employment info
       final employmentResponse = await http.get(
-        Uri.parse('http://localhost:8085/api/v1/employment-details/'),
+        Uri.parse('http://cash.imvj.one/api/v1/employment-details/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -109,7 +109,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> with SingleTickerProv
     try {
       final token = localStorage.getItem('accessToken');
       final response = await http.put(
-        Uri.parse('http://localhost:8085/api/v1/users/me'),
+        Uri.parse('http://cash.imvj.one/api/v1/users/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -142,7 +142,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> with SingleTickerProv
   Future<void> _updateEmploymentInfo() async {
     try {
       final token = localStorage.getItem('accessToken');
-      final url = Uri.parse('http://localhost:8085/api/v1/employment-details/');
+      final url = Uri.parse('http://cash.imvj.one/api/v1/employment-details/');
       
       final response = hasEmploymentData 
           ? await http.put(
