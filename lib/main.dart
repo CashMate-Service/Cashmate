@@ -21,21 +21,27 @@ class CashMateApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Cash Mate - Instant Loan Application',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        primaryColor: AppColors.primary,
-        scaffoldBackgroundColor: Colors.white,
-        textTheme: GoogleFonts.interTextTheme(),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          iconTheme: IconThemeData(color: Colors.black),
+    return GestureDetector(
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard globally
+      },
+      behavior: HitTestBehavior.opaque, // Detect taps on empty spaces
+      child: MaterialApp(
+        title: 'Cash Mate - Instant Loan Application',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          primaryColor: AppColors.primary,
+          scaffoldBackgroundColor: Colors.white,
+          textTheme: GoogleFonts.interTextTheme(),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            iconTheme: IconThemeData(color: Colors.black),
+          ),
         ),
+        home: const SplashScreen(),
       ),
-      home: const SplashScreen(),
     );
   }
 }
@@ -48,8 +54,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  // final LocalStorage storage = LocalStorage('cashmate_app');
-
   @override
   void initState() {
     super.initState();
@@ -59,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkAuth() async {
     await initLocalStorage();
     final token = localStorage.getItem('accessToken');
-     
+
     if (token != null) {
       print('Token found: $token');
       try {
@@ -100,11 +104,11 @@ class _SplashScreenState extends State<SplashScreen> {
           return;
         }
       } catch (e) {
-        // handle fetch errors (e.g., network, token expired)
+        // Handle fetch errors (e.g., network, token expired)
       }
     }
 
-    // fallback to login
+    // Fallback to login
     await Future.delayed(const Duration(seconds: 1));
     if (mounted) {
       Navigator.pushReplacement(
@@ -120,7 +124,7 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.white,
       body: Center(
         child: Image.asset(
-          'assets/image/Cashmate-logo.jpg', // replace with your actual logo
+          'assets/image/Cashmate-logo.jpg', // Replace with your actual logo
           width: 200,
           height: 200,
         ),
