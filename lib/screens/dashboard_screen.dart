@@ -26,7 +26,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
   Future<void> _fetchLoanRequests() async {
   
     const url = 'https://cash.imvj.one/api/v1/users/home';
-    final token = localStorage.getItem('accessToken');// replace with actual token
+    final token = localStorage.getItem('accessToken');
     try {
       final response = await http.get(
         Uri.parse(url),

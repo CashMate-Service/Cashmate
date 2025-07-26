@@ -32,6 +32,22 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
   bool _isLoading = true;
   bool _isSubmitting = false;
 
+  // NEW: dropdown states for income and payment mode
+  final List<String> _incomeRanges = const [
+    '15 to 20K',
+    '20 to 25K',
+    '25 to 30K',
+    '30 to 40K',
+    '40K above',
+  ];
+  String _selectedIncomeRange = '15 to 20K';
+
+  final List<String> _paymentModes = const [
+    'bank account',
+    'cash in hand',
+  ];
+  String _selectedPaymentMode = 'bank account';
+
   PlatformFile? _selectedFile;
 
   @override
@@ -63,8 +79,23 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
         if (mounted) {
           setState(() {
             selectedEmploymentType = data['employmentType'] ?? '';
-            _monthlyIncomeController.text =
-                data['netMonthlyIncome']?.toString() ?? '';
+            
+            // Handle income range dropdown
+            final netIncomeStr = data['netMonthlyIncome']?.toString() ?? '';
+            if (_incomeRanges.contains(netIncomeStr)) {
+              _selectedIncomeRange = netIncomeStr;
+            } else {
+              _selectedIncomeRange = _incomeRanges.first;
+            }
+            
+            // Handle payment mode dropdown
+            final paymentModeStr = data['paymentMode']?.toString() ?? '';
+            if (_paymentModes.contains(paymentModeStr)) {
+              _selectedPaymentMode = paymentModeStr;
+            } else {
+              _selectedPaymentMode = _paymentModes.first;
+            }
+            
             _companyNameController.text = data['companyOrBusinessName'] ?? '';
             _companyCodeController.text = data['companyPinCode'] ?? '';
             _isLoading = false;
@@ -82,9 +113,10 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
     if (selectedLoanRange.isEmpty ||
         selectedEmploymentType.isEmpty ||
         (selectedEmploymentType == 'salaried' &&
-            (_monthlyIncomeController.text.trim().isEmpty ||
+            (_selectedIncomeRange.isEmpty ||
                 _companyNameController.text.trim().isEmpty ||
                 _companyCodeController.text.trim().isEmpty ||
+                _selectedPaymentMode.isEmpty ||
                 _selectedFile == null))) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all required fields')),
@@ -116,10 +148,11 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
 
     if (selectedEmploymentType == 'salaried') {
       body.addAll({
-        "netMonthlyIncome": _monthlyIncomeController.text.trim(),
+        "netMonthlyIncome": _selectedIncomeRange,
         "companyOrBusinessName": _companyNameController.text.trim(),
         "companyPinCode": _companyCodeController.text.trim(),
-        "salarySlipDocument": "https://example.com/documents/salary-slip.pdf",
+        "paymentMode": _selectedPaymentMode,
+        "salarySlipDocument": "http://example.com/documents/salary-slip.pdf",
       });
     }
 
@@ -239,15 +272,17 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                     DropdownButtonFormField<String>(
                       value: selectedLoanRange.isNotEmpty
                           ? selectedLoanRange
-                          : 'Below ₹50,000',
+                          : '1 to 2 Lakhs',
                       decoration: const InputDecoration(
                         labelText: 'Desired Amount *',
                         border: OutlineInputBorder(),
                       ),
                       items: const [
-                        'Below ₹50,000',
-                        '₹50,000 - ₹1,00,000',
-                        'Above ₹1,00,000',
+                        '1 to 2 Lakhs',
+                        '2 to 3 Lakhs',
+                        '4 to 6 lakhs',
+                        '6 to 10 Lakhs',
+                        'Above 10 Lakhs'
                       ]
                           .map((range) => DropdownMenuItem(
                                 value: range,
@@ -287,94 +322,120 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
 
                     const SizedBox(height: 24),
 
-                    if (selectedEmploymentType == 'salaried') ...[
-                      CustomTextField(
-                        label: 'Net Monthly Income',
-                        placeholder: 'Enter your monthly salary',
-                        controller: _monthlyIncomeController,
-                        keyboardType: TextInputType.number,
-                        isRequired: true,
-                        prefixIcon: const Padding(
-                          padding: EdgeInsets.only(left: 12, top: 12),
-                          child: Text('₹', style: TextStyle(fontSize: 16)),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      CustomTextField(
-                        label: 'Company/Business Name',
-                        placeholder: 'Enter company name',
-                        controller: _companyNameController,
-                        isRequired: true,
-                      ),
-                      const SizedBox(height: 16),
-                      CustomTextField(
-                        label: 'Company PinCode',
-                        placeholder: 'Enter pin code',
-                        controller: _companyCodeController,
-                        isRequired: true,
-                      ),
-                      const SizedBox(height: 20),
-                      InkWell(
-                        onTap: _isUploading ? null : _pickDocument,
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(8),
-                            color: Colors.grey[100],
+                                          if (selectedEmploymentType == 'salaried') ...[
+                        DropdownButtonFormField<String>(
+                          value: _selectedIncomeRange.isNotEmpty
+                              ? _selectedIncomeRange
+                              : null,
+                          decoration: const InputDecoration(
+                            labelText: 'Net Monthly Income *',
+                            border: OutlineInputBorder(),
                           ),
-                          child: Column(
-                            children: [
-                              _isUploading
-                                  ? const CircularProgressIndicator()
-                                  : const Icon(Icons.upload_file,
-                                      size: 40, color: Colors.grey),
-                              const SizedBox(height: 8),
-                              Text(
+                          items: _incomeRanges
+                              .map((range) => DropdownMenuItem(
+                                    value: range,
+                                    child: Text(range),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() => _selectedIncomeRange = value ?? '');
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: _selectedPaymentMode.isNotEmpty
+                              ? _selectedPaymentMode
+                              : null,
+                          decoration: const InputDecoration(
+                            labelText: 'Payment Mode *',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _paymentModes
+                              .map((mode) => DropdownMenuItem(
+                                    value: mode,
+                                    child: Text(mode),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() => _selectedPaymentMode = value ?? '');
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        CustomTextField(
+                          label: 'Company/Business Name',
+                          placeholder: 'Enter company name',
+                          controller: _companyNameController,
+                          isRequired: true,
+                        ),
+                        const SizedBox(height: 16),
+                        CustomTextField(
+                          label: 'Company PinCode',
+                          placeholder: 'Enter pin code',
+                          controller: _companyCodeController,
+                          isRequired: true,
+                        ),
+                        const SizedBox(height: 20),
+                        InkWell(
+                          onTap: _isUploading ? null : _pickDocument,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(8),
+                              color: Colors.grey[100],
+                            ),
+                            child: Column(
+                              children: [
                                 _isUploading
-                                    ? 'Uploading...'
-                                    : 'Upload Salary Slip/Bank Statement',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w500),
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'PDF, JPG, PNG (MAX 5MB)',
-                                style:
-                                    TextStyle(fontSize: 12, color: Colors.grey),
-                              ),
-                              if (_selectedFile != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          _selectedFile!.name,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.green,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          maxLines: 1,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.close, size: 16),
-                                        onPressed: () => setState(
-                                            () => _selectedFile = null),
-                                      ),
-                                    ],
-                                  ),
+                                    ? const CircularProgressIndicator()
+                                    : const Icon(Icons.upload_file,
+                                        size: 40, color: Colors.grey),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _isUploading
+                                      ? 'Uploading...'
+                                      : 'Upload Salary Slip/Bank Statement',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w500),
                                 ),
-                            ],
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'PDF, JPG, PNG (MAX 5MB)',
+                                  style:
+                                      TextStyle(fontSize: 12, color: Colors.grey),
+                                ),
+                                if (_selectedFile != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            _selectedFile!.name,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.green,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            maxLines: 1,
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.close, size: 16),
+                                          onPressed: () => setState(
+                                              () => _selectedFile = null),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
+                        const SizedBox(height: 20),
+                      ],
 
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,

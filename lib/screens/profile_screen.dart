@@ -23,11 +23,27 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   final _pinCodeController = TextEditingController();
   final _maritalStatusController = TextEditingController();
 
-  // Employment details controllers
+  // Old controller kept to avoid bigger refactors (not used to send value now)
   final _netMonthlyIncomeController = TextEditingController();
   final _companyNameController = TextEditingController();
   final _companyPinCodeController = TextEditingController();
   String _salarySlipDocument = '';
+
+  // NEW: dropdown states
+  final List<String> _incomeRanges = const [
+    '15 to 20K',
+    '20 to 25K',
+    '25 to 30K',
+    '30 to 40K',
+    '40K above',
+  ];
+  String _selectedIncomeRange = '15 to 20K';
+
+  final List<String> _paymentModes = const [
+    'bank account',
+    'cash in hand',
+  ];
+  String _selectedPaymentMode = 'bank account';
 
   String gender = '';
   bool isLoading = true;
@@ -85,21 +101,38 @@ class _MyProfileScreenState extends State<MyProfileScreen>
           'Authorization': 'Bearer $token',
         },
       );
-
+      print("Employment Response: ${employmentResponse.body}");
       if (employmentResponse.statusCode == 200) {
         final employmentData = json.decode(employmentResponse.body);
         if (employmentData['success'] == true &&
             employmentData['data'] != null) {
           setState(() {
             hasEmploymentData = true;
-            _netMonthlyIncomeController.text =
+
+            // If backend still returns numeric/net value, keep previous text controller filled.
+            final netIncomeStr =
                 employmentData['data']['netMonthlyIncome']?.toString() ?? '';
+            _netMonthlyIncomeController.text = netIncomeStr;
+
+            if (_incomeRanges.contains(netIncomeStr)) {
+              _selectedIncomeRange = netIncomeStr;
+            } else {
+              _selectedIncomeRange = _incomeRanges.first;
+            }
+
             _companyNameController.text =
                 employmentData['data']['companyOrBusinessName'] ?? '';
             _companyPinCodeController.text =
                 employmentData['data']['companyPinCode'] ?? '';
             _salarySlipDocument =
                 employmentData['data']['salarySlipDocument'] ?? '';
+
+            final pm = employmentData['data']['paymentMode']?.toString() ?? '';
+            if (_paymentModes.contains(pm)) {
+              _selectedPaymentMode = pm;
+            } else {
+              _selectedPaymentMode = _paymentModes.first;
+            }
           });
         }
       }
@@ -146,41 +179,32 @@ class _MyProfileScreenState extends State<MyProfileScreen>
     }
   }
 
-   Future<void> _updateEmploymentInfo() async {
+  Future<void> _updateEmploymentInfo() async {
     try {
       final token = localStorage.getItem('accessToken');
       final url =
           Uri.parse('https://cash.imvj.one/api/v1/employment-details/');
 
-      final response = hasEmploymentData
-          ? await http.put(
-              url,
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $token',
-              },
-              body: json.encode({
-                'netMonthlyIncome':
-                    int.tryParse(_netMonthlyIncomeController.text) ?? 0,
-                'companyOrBusinessName': _companyNameController.text,
-                'companyPinCode': _companyPinCodeController.text,
-                'salarySlipDocument': _salarySlipDocument,
-              }),
-            )
-          : await http.post(
-              url,
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $token',
-              },
-              body: json.encode({
-                'netMonthlyIncome':
-                    int.tryParse(_netMonthlyIncomeController.text) ?? 0,
-                'companyOrBusinessName': _companyNameController.text,
-                'companyPinCode': _companyPinCodeController.text,
-                'salarySlipDocument': _salarySlipDocument,
-              }),
-            );
+      final payload = json.encode({
+        // send selected string
+        'employmentType': "salaried",
+        'netMonthlyIncome': _selectedIncomeRange,
+        'companyOrBusinessName': _companyNameController.text,
+        'companyPinCode': _companyPinCodeController.text,
+        'salarySlipDocument': _salarySlipDocument,
+        'paymentMode': _selectedPaymentMode,
+      });
+
+      print("PUT Payload: $payload"); // <-- Print payload
+
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: payload,
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         _showSnackbar('Employment details updated successfully');
@@ -189,7 +213,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
           hasEmploymentData = true;
         });
       } else {
-        print(response);
         _showSnackbar('Failed to update employment details');
       }
     } catch (e) {
@@ -226,16 +249,17 @@ class _MyProfileScreenState extends State<MyProfileScreen>
     bool isNumber = false,
     bool enabled = false,
     double fontSize = 13,
-    EdgeInsetsGeometry margin = const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+    EdgeInsetsGeometry margin =
+        const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
     void Function(String)? onChanged,
   }) {
     return Card(
       margin: margin,
-      color: Colors.white, // white background
+      color: Colors.white,
       elevation: 0.5,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(6),
-        side: const BorderSide(color: Colors.black), // black border
+        side: const BorderSide(color: Colors.black),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -247,16 +271,95 @@ class _MyProfileScreenState extends State<MyProfileScreen>
               child: TextField(
                 controller: controller,
                 enabled: enabled,
-                keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-                style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600),
+                keyboardType:
+                    isNumber ? TextInputType.number : TextInputType.text,
+                style:
+                    TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
                   labelText: label,
-                  labelStyle: TextStyle(fontSize: fontSize - 1, color: Colors.grey[700]),
+                  labelStyle: TextStyle(
+                      fontSize: fontSize - 1, color: Colors.grey[700]),
                   border: InputBorder.none,
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
                 onChanged: onChanged,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // NEW: dropdown tile that matches the same design language
+  Widget _modernDropdownTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    required List<String> items,
+    required bool enabled,
+    required ValueChanged<String?> onChanged,
+    double fontSize = 13,
+    EdgeInsetsGeometry margin =
+        const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+  }) {
+    return Card(
+      margin: margin,
+      color: Colors.white,
+      elevation: 0.5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(6),
+        side: const BorderSide(color: Colors.black),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Icon(icon, color: const Color(0xFF003366), size: fontSize + 2),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Label
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: fontSize - 1,
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  DropdownButtonHideUnderline(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: DropdownButton<String>(
+                        isDense: true,
+                        isExpanded: true, // <-- This makes it take full width
+                        value: value,
+                        items: items
+                            .map(
+                              (e) => DropdownMenuItem<String>(
+                                value: e,
+                                child: Text(
+                                  e,
+                                  style: TextStyle(
+                                    fontSize: fontSize,
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        enabled ? Colors.black : Colors.grey[700],
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: enabled ? onChanged : null,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -286,27 +389,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                   ),
                 ),
               ),
-              // Positioned(
-              //   bottom: 0,
-              //   right: 0,
-              //   child: GestureDetector(
-              //     onTap: () {},
-              //     child: Container(
-              //       decoration: BoxDecoration(
-              //         color: Colors.white,
-              //         shape: BoxShape.circle,
-              //         boxShadow: [
-              //           BoxShadow(
-              //             color: Colors.black.withOpacity(0.08),
-              //             blurRadius: 2,
-              //           ),
-              //         ],
-              //       ),
-              //       padding: const EdgeInsets.all(2),
-              //       child: const Icon(Icons.edit, size: 14, color: Color(0xFF003366)),
-              //     ),
-              //   ),
-              // ),
             ],
           ),
           const SizedBox(width: 12),
@@ -334,7 +416,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
               ],
             ),
           ),
-          // Replace the logout IconButton with a TextButton.icon
           TextButton.icon(
             onPressed: () async {
               localStorage.clear();
@@ -355,7 +436,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
             style: TextButton.styleFrom(
               foregroundColor: const Color(0xFF003366),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              minimumSize: Size(0, 36),
+              minimumSize: const Size(0, 36),
             ),
           ),
         ],
@@ -364,7 +445,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   }
 
   Widget _modernTabBar(double screenWidth) {
-    // Custom indicator for pill effect, expands to half the TabBar width
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       padding: const EdgeInsets.all(2),
@@ -383,7 +463,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         indicatorSize: TabBarIndicatorSize.tab,
         tabs: [
           SizedBox(
-            width: screenWidth * 0.5 * 0.9, // half of tab bar, minus margin
+            width: screenWidth * 0.5 * 0.9,
             child: const Tab(text: 'Personal'),
           ),
           SizedBox(
@@ -408,7 +488,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
             controller: _fullNameController,
             enabled: false,
             fontSize: fontSize,
-            margin: EdgeInsets.only(top: 0, bottom: 6), // No top margin for first card
+            margin: const EdgeInsets.only(top: 0, bottom: 6),
           ),
           _modernInfoTile(
             icon: Icons.email,
@@ -447,7 +527,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
             enabled: false,
             fontSize: fontSize,
           ),
-          // No edit/save button for personal info
         ],
       ),
     );
@@ -460,13 +539,21 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          _modernInfoTile(
+          // NEW: net monthly income dropdown
+          _modernDropdownTile(
             icon: Icons.monetization_on,
             label: 'Net Monthly Income',
-            controller: _netMonthlyIncomeController,
-            isNumber: true,
+            value: _selectedIncomeRange,
+            items: _incomeRanges,
             enabled: isEmploymentInfoEditing,
             fontSize: fontSize,
+            onChanged: (val) {
+              if (val != null) {
+                setState(() {
+                  _selectedIncomeRange = val;
+                });
+              }
+            },
           ),
           _modernInfoTile(
             icon: Icons.business,
@@ -483,15 +570,33 @@ class _MyProfileScreenState extends State<MyProfileScreen>
             enabled: isEmploymentInfoEditing,
             fontSize: fontSize,
           ),
+          // NEW: payment mode dropdown
+          _modernDropdownTile(
+            icon: Icons.account_balance_wallet,
+            label: 'Payment Mode',
+            value: _selectedPaymentMode,
+            items: _paymentModes,
+            enabled: isEmploymentInfoEditing,
+            fontSize: fontSize,
+            onChanged: (val) {
+              if (val != null) {
+                setState(() {
+                  _selectedPaymentMode = val;
+                });
+              }
+            },
+          ),
           Card(
             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
             elevation: 1.5,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: Row(
                 children: [
-                  const Icon(Icons.file_present, color: Color(0xFF003366), size: 15),
+                  const Icon(Icons.file_present,
+                      color: Color(0xFF003366), size: 15),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -512,11 +617,13 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                     TextButton.icon(
                       onPressed: _pickSalarySlip,
                       icon: const Icon(Icons.upload_file, size: 15),
-                      label: const Text('Upload', style: TextStyle(fontSize: 12)),
+                      label:
+                          const Text('Upload', style: TextStyle(fontSize: 12)),
                     )
                   else if (_salarySlipDocument.isNotEmpty)
                     IconButton(
-                      icon: const Icon(Icons.visibility, color: Color(0xFF003366), size: 15),
+                      icon: const Icon(Icons.visibility,
+                          color: Color(0xFF003366), size: 15),
                       onPressed: () {
                         showDialog(
                           context: context,
@@ -541,17 +648,22 @@ class _MyProfileScreenState extends State<MyProfileScreen>
           Align(
             alignment: Alignment.centerRight,
             child: ElevatedButton.icon(
-              icon: Icon(isEmploymentInfoEditing ? Icons.save : Icons.edit, size: 16, color: Colors.white,),
+              icon: Icon(
+                isEmploymentInfoEditing ? Icons.save : Icons.edit,
+                size: 16,
+                color: Colors.white,
+              ),
               label: Text(
                 isEmploymentInfoEditing ? 'Save' : 'Edit',
-                style: const TextStyle(fontSize: 13, color: Colors.white), // white text
+                style: const TextStyle(fontSize: 13, color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF003366), // blue button
+                backgroundColor: const Color(0xFF003366),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 minimumSize: const Size(0, 32),
               ),
               onPressed: () {
@@ -583,10 +695,10 @@ class _MyProfileScreenState extends State<MyProfileScreen>
             : LayoutBuilder(
                 builder: (context, constraints) {
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Column(
                       children: [
-                        // Add logo at the top
                         Center(
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 8.0),
@@ -600,7 +712,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                         ),
                         _modernProfileHeader(screenWidth),
                         _modernTabBar(screenWidth),
-                        // Removed SizedBox(height: 8),
                         Expanded(
                           child: TabBarView(
                             controller: _tabController,
