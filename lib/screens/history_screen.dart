@@ -38,27 +38,35 @@ class _HistoryScreenState extends State<HistoryScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success'] == true) {
-          setState(() {
-            loanRequests = data['data']['loanRequests'];
-            isLoading = false;
-          });
-        } else {
+          if (mounted) {
+            setState(() {
+              loanRequests = data['data']['loanRequests'];
+              isLoading = false;
+            });
+          }
+        } else { 
+          if (mounted) {
           setState(() {
             errorMessage = data['message'] ?? 'Failed to load loan requests';
             isLoading = false;
           });
+          }
         }
       } else {
+        if (mounted) {
         setState(() {
           errorMessage = 'Failed to load loan requests: ${response.statusCode}';
           isLoading = false;
         });
+        }
       }
     } catch (e) {
+      if (mounted) {
       setState(() {
         errorMessage = 'Error: ${e.toString()}';
         isLoading = false;
       });
+      }
     }
   }
 

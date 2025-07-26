@@ -77,6 +77,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         final personalData = json.decode(personalResponse.body);
         if (personalData['success'] == true) {
           final user = personalData['data']['user'];
+          if (mounted) {
           setState(() {
             _fullNameController.text = user['fullname'] ?? '';
             _emailController.text = user['email'] ?? '';
@@ -90,6 +91,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
               _dobController.text = DateFormat('dd/MM/yyyy').format(dobParsed);
             }
           });
+          }
         }
       }
 
@@ -106,6 +108,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         final employmentData = json.decode(employmentResponse.body);
         if (employmentData['success'] == true &&
             employmentData['data'] != null) {
+          if (mounted) {
           setState(() {
             hasEmploymentData = true;
 
@@ -134,14 +137,17 @@ class _MyProfileScreenState extends State<MyProfileScreen>
               _selectedPaymentMode = _paymentModes.first;
             }
           });
+          }
         }
       }
     } catch (e) {
       _showSnackbar('Failed to fetch user data');
     } finally {
+      if (mounted) {
       setState(() {
         isLoading = false;
       });
+      }
     }
   }
 
@@ -168,9 +174,11 @@ class _MyProfileScreenState extends State<MyProfileScreen>
 
       if (response.statusCode == 200) {
         _showSnackbar('Profile updated successfully');
+        if (mounted) {
         setState(() {
           isPersonalInfoEditing = false;
         });
+        }
       } else {
         _showSnackbar('Failed to update profile');
       }
@@ -228,9 +236,11 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       );
 
       if (result != null) {
+        if (mounted) {
         setState(() {
           _salarySlipDocument = result.files.single.name;
         });
+        }
       }
     } catch (e) {
       _showSnackbar('Error picking file');
@@ -549,9 +559,11 @@ class _MyProfileScreenState extends State<MyProfileScreen>
             fontSize: fontSize,
             onChanged: (val) {
               if (val != null) {
+                if (mounted) {
                 setState(() {
                   _selectedIncomeRange = val;
                 });
+                }
               }
             },
           ),
@@ -580,9 +592,11 @@ class _MyProfileScreenState extends State<MyProfileScreen>
             fontSize: fontSize,
             onChanged: (val) {
               if (val != null) {
+                if (mounted) {
                 setState(() {
                   _selectedPaymentMode = val;
                 });
+                }
               }
             },
           ),
@@ -670,9 +684,11 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                 if (isEmploymentInfoEditing) {
                   _updateEmploymentInfo();
                 } else {
+                  if (mounted) {
                   setState(() {
                     isEmploymentInfoEditing = true;
                   });
+                  }
                 }
               },
             ),
