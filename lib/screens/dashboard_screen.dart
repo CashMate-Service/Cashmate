@@ -24,7 +24,6 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
   }
 
   Future<void> _fetchLoanRequests() async {
-  
     const url = 'https://cash.imvj.one/api/v1/users/home';
     final token = localStorage.getItem('accessToken');
     try {
@@ -36,14 +35,15 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         final data = json['data'];
-
-        setState(() {
-          pendingLoanRequest = data['pendingLoanRequest'];
-          completedLoanRequests = List<Map<String, dynamic>>.from(
-            data['completedLoanRequests'] ?? [],
-          );
-          isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            pendingLoanRequest = data['pendingLoanRequest'];
+            completedLoanRequests = List<Map<String, dynamic>>.from(
+              data['completedLoanRequests'] ?? [],
+            );
+            isLoading = false;
+          });
+        }
       } else {
         throw Exception('Failed to load loan data');
       }
@@ -148,9 +148,8 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
 
   Widget _buildLoanCard(Map<String, dynamic> req) {
     final amount = req['desiredAmount'] ?? 0;
-    final date = req['createdAt'] != null
-        ? DateTime.tryParse(req['createdAt'])
-        : null;
+    final date =
+        req['createdAt'] != null ? DateTime.tryParse(req['createdAt']) : null;
     final dateFormatted =
         date != null ? DateFormat.yMMMd().format(date) : 'Date unavailable';
 

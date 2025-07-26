@@ -1,8 +1,7 @@
 // import 'package:cashmate_loan_app/screens/details_screen.dart';
+import 'dart:io';
 import 'package:cashmate/screens/details_screen.dart';
 import 'package:cashmate/screens/main_screen.dart';
-// import 'package:cashmate/utils/show_snackbar.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -11,6 +10,7 @@ import 'dart:convert';
 
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:localstorage/localstorage.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../widgets/progress_indicator_widget.dart';
 import '../utils/app_colors.dart';
@@ -23,23 +23,19 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-// final GoogleSignIn _googleSignIn = GoogleSignIn(
-//   scopes: ['email'],
-// );
-
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
-  // final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _isValidPhoneNumber = false;
   bool _isLoading = false;
-  // bool _isCheckingLogin = true;
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email'],
+  );
 
   @override
   void initState() {
     super.initState();
-    // _fetchUserData();
     _phoneController.addListener(_validatePhoneNumber);
-    // _googleSignIn.scopes(['email', 'profile']);
   }
 
   void _validatePhoneNumber() {
@@ -68,7 +64,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.statusCode == 200) {
-        // OTP sent successfully, navigate to erify screen
         if (mounted) {
           Navigator.push(
             context,
@@ -79,7 +74,6 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }
       } else {
-        // Handle error
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -107,9 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email'],
-  );
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isLoading = true);
     try {
@@ -119,30 +110,28 @@ class _LoginScreenState extends State<LoginScreen> {
       final idToken = auth?.idToken;
 
       if (idToken == null) throw Exception("No ID token received");
-      print('Google ID Token: $idToken');
+      debugPrint('Google ID Token: $idToken');
 
-      // 🔥 Send token to backend
       final response = await http.post(
-        Uri.parse(
-            'https://cash.imvj.one/api/v1/auth/google-login'), // <-- update this
+        Uri.parse('https://cash.imvj.one/api/v1/auth/google-login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'id_token': idToken}),
       );
+
       final res = jsonDecode(response.body);
       if (res['success'] == true && res['data'] != null) {
         final accessToken = res['data']['token']['accessToken'];
         await initLocalStorage();
         localStorage.setItem('accessToken', accessToken);
 
-        if (res['data']['user']['fullName'] != null){
-           Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MainScreen(),
-          ),
-        );
+        if (res['data']['user']['fullName'] != null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MainScreen(),
+            ),
+          );
         } else {
-          // User not found, navigate to details screen
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -152,24 +141,79 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } else {
         throw Exception('Backend error: ${response.body}');
-      } 
+      }
     } catch (e) {
-      debugPrint('Sign-in error: $e');
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(content: Text('Sign-in failed: $e')),
-      // );
+      debugPrint('Google sign-in error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sign-in failed: $e')),
+        );
+      }
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
+  /// ---------------- NEW: Apple Sign In ----------------
+  Future<void> _handleAppleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          // AppleIDAuthorizationScopes.fullName,
+        ],
+      );
 
-  // void _showError(String msg) {
-  //   if (!mounted) return;
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(content: Text(msg), backgroundColor: Colors.red),
-  //   );
-  // }
+      final idToken = credential.identityToken;
+      if (idToken == null) {
+        throw Exception('No Apple identity token received');
+      }
+
+      debugPrint('Apple Identity Token: $idToken');
+
+      final response = await http.post(
+        Uri.parse('https://cash.imvj.one/api/v1/auth/apple-login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id_token': idToken}),
+      );
+
+      final res = jsonDecode(response.body);
+      if (res['success'] == true && res['data'] != null) {
+        final accessToken = res['data']['token']['accessToken'];
+        await initLocalStorage();
+        localStorage.setItem('accessToken', accessToken);
+
+        if (res['data']['user']['fullName'] != null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MainScreen(),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const DetailsScreen(),
+            ),
+          );
+        }
+      } else {
+        throw Exception('Backend error: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Apple sign-in error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Apple Sign-in failed: $e')),
+        );
+      }
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+  /// ----------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -185,10 +229,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 Image.asset(
                   'assets/image/Cashmate-logo.jpg',
                   width: 190,
-                  height: 150,
+                  height: 110,
                   fit: BoxFit.contain,
                 ),
-                // const SizedBox(height: 20),
                 const ProgressIndicatorWidget(
                   currentStep: 1,
                   stepNames: const ['Mobile', 'Verify', 'Details'],
@@ -244,7 +287,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Phone Input
                         Row(
                           children: [
                             Container(
@@ -380,6 +422,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                         const SizedBox(height: 24),
+
+                        // Google
                         SizedBox(
                           width: double.infinity,
                           height: 40,
@@ -412,6 +456,22 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
+
+                        const SizedBox(height: 12),
+
+                        // ---------------- NEW: Apple Button (only on iOS) ----------------
+                        if(Platform.isIOS)
+                          SizedBox(
+                            width: double.infinity,
+                            height: 44,
+                            child: SignInWithAppleButton(
+                              onPressed: _isLoading ? null : _handleAppleSignIn,
+                              borderRadius: const BorderRadius.all(Radius.circular(4)),
+                              text: 'Continue with Apple',
+                            ),
+                          ),
+                        // -----------------------------------------------------------------
+
                         const SizedBox(height: 16),
                         const Text(
                           'By continuing, you agree to our Terms and Conditions\nand Privacy Policy',
