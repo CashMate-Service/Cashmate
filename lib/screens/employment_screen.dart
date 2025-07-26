@@ -25,7 +25,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
   final TextEditingController _companyNameController = TextEditingController();
   final TextEditingController _companyCodeController = TextEditingController();
 
-  String selectedLoanRange = 'Below ₹50,000';
+  String selectedLoanRange = '1 to 2 Lakhs';
   String selectedEmploymentType = '';
   bool _agreedToTerms = false;
   bool _isUploading = false;
