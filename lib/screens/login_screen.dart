@@ -146,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('Google sign-in error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign-in failed: $e')),
+          SnackBar(content: Text('Google Sign in Terminated')),
         );
       }
     } finally {
@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('Apple sign-in error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Apple Sign-in failed: $e')),
+          const SnackBar(content: Text('Apple Sign in was cancelled')),
         );
       }
     } finally {
@@ -229,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Image.asset(
                   'assets/image/Cashmate-logo.jpg',
                   width: 190,
-                  height: 110,
+                  height: 120,
                   fit: BoxFit.contain,
                 ),
                 const ProgressIndicatorWidget(
