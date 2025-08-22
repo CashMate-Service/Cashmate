@@ -64,13 +64,19 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
+
+	<!-- Privacy Usage Descriptions -->
 	<key>NSPhotoLibraryUsageDescription</key>
-<string>This app needs access to your photo library to allow you to select and upload photos.</string>
+	<string>This app needs access to your photo library to allow you to select and upload photos.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to your camera to allow you to take photos for uploads.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to your microphone to record audio if required.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>This identifier will be used to deliver personalized ads to you.</string>
 
-<key>NSCameraUsageDescription</key>
-<string>This app needs access to your camera to allow you to take photos for uploads.</string>
-
-<key>NSMicrophoneUsageDescription</key>
-<string>This app needs access to your microphone to record audio if required.</string>
+	<!-- Sign in with Apple capability -->
+	<key>ASAuthorizationAppleID</key>
+	<true/>
 </dict>
 </plist>
