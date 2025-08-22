@@ -28,7 +28,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> fetchLoanRequests() async {
     try {
       final response = await http.get(
-        Uri.parse('https://cash.imvj.one/api/v1/loan/request'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/loan/request'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -79,13 +79,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 32),
+            // const SizedBox(height: 1),
             // Logo
             Image.asset(
-              'assets/image/Cashmate-logo.jpg',
-              width: width * 0.5,
+              'assets/image/Cashmate-logo.png',
+              width: width * 0.51,
               fit: BoxFit.contain,
-              height: 120,
+              height: 110,
               // fit: BoxFit.contain,
             ),
             const SizedBox(height: 16),
@@ -98,7 +98,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             const SizedBox(height: 32),
             const Text(
-              'Loan History and Details',
+              'Loan Suggestions',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -136,7 +136,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     if (loanRequests.isEmpty) {
       return const Center(
-        child: Text('No loan requests found'),
+        child: Text('No Loan Enquiries Found'),
       );
     }
 

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiConstants {
-  static const String baseUrl = "https://cash.imvj.one/api/v1";
+  static const String baseUrl = "https://backend.infinz.seabed2crest.com/api/v1";
   static const String userProfileEndpoint = "/users/me";
 }
 

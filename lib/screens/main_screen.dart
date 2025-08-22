@@ -1,3 +1,4 @@
+import 'package:cashmate/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 
@@ -73,7 +74,7 @@ class _MainScreenState extends State<MainScreen>
         scaleFactor: 1.0,
         itemCount: _iconList.length,
         tabBuilder: (index, isActive) {
-          final color = isActive ? Colors.indigo : Colors.grey;
+          final color = isActive ? Colors.black : Colors.grey;
           return Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,

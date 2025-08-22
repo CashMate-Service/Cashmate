@@ -155,7 +155,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://cash.imvj.one/api/v1/auth/verify-otp'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/auth/verify-otp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'phoneNumber': widget.phoneNumber,
@@ -173,11 +173,13 @@ class _VerifyScreenState extends State<VerifyScreen> {
 
         final hasName = data['data']['user']['fullName'] != null;
 
-        Navigator.pushReplacement(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-              builder: (_) =>
-                  hasName ? const MainScreen() : const DetailsScreen()),
+            builder: (_) =>
+                hasName ? const MainScreen() : const DetailsScreen(),
+          ),
+          (Route<dynamic> route) => false, 
         );
       } else {
         if (mounted) {
@@ -194,9 +196,9 @@ class _VerifyScreenState extends State<VerifyScreen> {
       }
     } finally {
       if (mounted) {
-      setState(() {
-        isLoading = false;
-      });
+        setState(() {
+          isLoading = false;
+        });
       }
     }
   }
@@ -368,7 +370,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
                     children: [
                       const SizedBox(height: 32),
                       Image.asset(
-                        'assets/image/Cashmate-logo.jpg',
+                        'assets/image/Cashmate-logo.png',
                         width: 190,
                         height: 189,
                         fit: BoxFit.contain,

@@ -23,7 +23,8 @@ class CashMateApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard globally
+        FocusManager.instance.primaryFocus
+            ?.unfocus(); // Dismiss keyboard globally
       },
       behavior: HitTestBehavior.opaque, // Detect taps on empty spaces
       child: MaterialApp(
@@ -33,7 +34,24 @@ class CashMateApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           primaryColor: AppColors.primary,
           scaffoldBackgroundColor: Colors.white,
-          textTheme: GoogleFonts.interTextTheme(),
+          textTheme: GoogleFonts.robotoCondensedTextTheme().copyWith(
+            bodyLarge: GoogleFonts.robotoCondensed(
+              fontWeight: FontWeight.w700, // ExtraBold
+              fontStyle: FontStyle.normal,
+            ),
+            bodyMedium: GoogleFonts.robotoCondensed(
+              fontWeight: FontWeight.w700,
+              fontStyle: FontStyle.normal,
+            ),
+            bodySmall: GoogleFonts.robotoCondensed(
+              fontWeight: FontWeight.w700,
+              fontStyle: FontStyle.normal,
+            ),
+            titleLarge: GoogleFonts.robotoCondensed(
+              fontWeight: FontWeight.w800,
+              fontStyle: FontStyle.normal,
+            ),
+          ),
           appBarTheme: const AppBarTheme(
             backgroundColor: Colors.white,
             elevation: 0,
@@ -68,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen> {
       print('Token found: $token');
       try {
         final response = await http.get(
-          Uri.parse('https://cash.imvj.one/api/v1/users/me'),
+          Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/users/me'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token',
@@ -124,7 +142,7 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.white,
       body: Center(
         child: Image.asset(
-          'assets/image/Cashmate-logo.jpg', // Replace with your actual logo
+          'assets/image/Cashmate-logo.png', // Replace with your actual logo
           width: 200,
           height: 200,
         ),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cashmate/screens/employment_screen.dart';
+import 'package:cashmate/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -24,7 +25,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
   }
 
   Future<void> _fetchLoanRequests() async {
-    const url = 'https://cash.imvj.one/api/v1/users/home';
+    const url = 'https://backend.infinz.seabed2crest.com/api/v1/users/home';
     final token = localStorage.getItem('accessToken');
     try {
       final response = await http.get(
@@ -79,17 +80,28 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                 children: [
                   Center(
                     child: Image.asset(
-                      'assets/image/Cashmate-logo.jpg',
+                      'assets/image/Cashmate-logo.png',
                       width: width * 0.5,
                       fit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  // const SizedBox(height: 24),
+                    //  const SizedBox(height: 20),
+                    const Text(
+                  "Disclaimer: Infinz provides loan suggestions only and is not a lender or financial institution. ",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+                const SizedBox(height: 20),
                   if (pendingLoanRequest == null)
                     ElevatedButton(
                       onPressed: _showLoanFormModal,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF004AAD),
+                        backgroundColor: Colors.indigoAccent,
                         minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -99,7 +111,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Apply for Loan',
+                            'Get Loan Suggestions',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -115,7 +127,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                   if (pendingLoanRequest != null) ...[
                     const SizedBox(height: 16),
                     Text(
-                      'Pending Loan Request',
+                      'Loan Suggestions',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -125,7 +137,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                   ],
                   const SizedBox(height: 32),
                   Text(
-                    'Recent Loan Requests',
+                    'Recent loan Suggestions',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -133,13 +145,14 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                   const SizedBox(height: 16),
                   if (completedLoanRequests.isEmpty)
                     const Text(
-                      'No requests found',
+                      'No Suggestions found',
                       style: TextStyle(color: Colors.grey),
                     )
                   else
                     ...completedLoanRequests
                         .map((req) => _buildLoanCard(req))
                         .toList(),
+                        
                 ],
               ),
       ),

@@ -43,6 +43,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/image/Cashmate-logo.jpg
+    - assets/image/Cashmate-logo.png
     - assets/lottie/Money.json
-    - assets/image/logo-icon.jpg
+    - assets/image/new-logo.png

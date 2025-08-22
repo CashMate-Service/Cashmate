@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://cash.imvj.one/api/v1/auth/send-otp/'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/auth/send-otp/'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -113,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('Google ID Token: $idToken');
 
       final response = await http.post(
-        Uri.parse('https://cash.imvj.one/api/v1/auth/google-login'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/auth/google-login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'id_token': idToken}),
       );
@@ -125,18 +125,16 @@ class _LoginScreenState extends State<LoginScreen> {
         localStorage.setItem('accessToken', accessToken);
 
         if (res['data']['user']['fullName'] != null) {
-          Navigator.pushReplacement(
+          Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(
-              builder: (context) => const MainScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+            (Route<dynamic> route) => false, // removes all previous routes
           );
         } else {
-          Navigator.pushReplacement(
+          Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(
-              builder: (context) => const DetailsScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const DetailsScreen()),
+            (Route<dynamic> route) => false,
           );
         }
       } else {
@@ -173,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('Apple Identity Token: $idToken');
 
       final response = await http.post(
-        Uri.parse('https://cash.imvj.one/api/v1/auth/apple-login'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/auth/apple-login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'id_token': idToken}),
       );
@@ -213,6 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _isLoading = false);
     }
   }
+
   /// ----------------------------------------------------
 
   @override
@@ -227,7 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const SizedBox(height: 10),
                 Image.asset(
-                  'assets/image/Cashmate-logo.jpg',
+                  'assets/image/Cashmate-logo.png',
                   width: 190,
                   height: 120,
                   fit: BoxFit.contain,
@@ -360,40 +359,51 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(
                           width: double.infinity,
                           height: 48,
-                          child: ElevatedButton(
-                            onPressed: _isValidPhoneNumber && !_isLoading
-                                ? _sendOtp
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _isValidPhoneNumber
-                                  ? AppColors.primary
-                                  : AppColors.secondary,
-                              foregroundColor: _isValidPhoneNumber
-                                  ? Colors.white
-                                  : Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              elevation: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: _isValidPhoneNumber
+                                  ? Colors.indigoAccent
+                                  : AppColors.secondary, // fallback color
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
+                            child: ElevatedButton(
+                              onPressed: _isValidPhoneNumber && !_isLoading
+                                  ? _sendOtp
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors
+                                    .transparent, // Transparent to show container color
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      'Send OTP',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w800,
+                                            fontStyle: FontStyle.normal,
+                                            color: Colors.white,
+                                          ),
                                     ),
-                                  )
-                                : const Text(
-                                    'Send OTP',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
+                            ),
                           ),
                         ),
+
                         const SizedBox(height: 32),
                         Row(
                           children: [
@@ -460,13 +470,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 12),
 
                         // ---------------- NEW: Apple Button (only on iOS) ----------------
-                        if(Platform.isIOS)
+                        if (Platform.isIOS)
                           SizedBox(
                             width: double.infinity,
                             height: 44,
                             child: SignInWithAppleButton(
                               onPressed: _isLoading ? null : _handleAppleSignIn,
-                              borderRadius: const BorderRadius.all(Radius.circular(4)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(4)),
                               text: 'Continue with Apple',
                             ),
                           ),

@@ -56,7 +56,7 @@ class _ThankYouScreenState extends State<ThankYouScreen> {
             const SizedBox(height: 40),
             // Logo
             Image.asset(
-              'assets/image/Cashmate-logo.jpg',
+              'assets/image/Cashmate-logo.png',
               width: 140,
               height: 120,
               fit: BoxFit.contain,

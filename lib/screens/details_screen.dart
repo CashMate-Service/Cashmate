@@ -88,7 +88,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     try {
       final token = localStorage.getItem('accessToken');
       final response = await http.get(
-        Uri.parse('https://cash.imvj.one/api/v1/users/me'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/users/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -126,7 +126,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     try {
       final token = localStorage.getItem('accessToken');
       final response = await http.post(
-        Uri.parse('https://cash.imvj.one/api/v1/users/change-phone/'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/users/change-phone/'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token'
@@ -166,7 +166,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     try {
       final token = localStorage.getItem('accessToken');
       final response = await http.put(
-        Uri.parse('https://cash.imvj.one/api/v1/users/change-phone/'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/users/change-phone/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
@@ -295,7 +295,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
           showPhoneField ? _phoneController.text : phoneNumber;
 
       final response = await http.put(
-        Uri.parse('https://cash.imvj.one/api/v1/users/me'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/users/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -361,8 +361,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
               children: [
                 const SizedBox(height: 20),
                 Image.asset(
-                  'assets/image/Cashmate-logo.jpg',
-                  height: 120,
+                  'assets/image/Cashmate-logo.png',
+                  height: 70,
                 ),
                 const SizedBox(height: 24),
                 CustomTextField(

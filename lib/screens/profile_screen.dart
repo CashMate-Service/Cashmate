@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cashmate/screens/login_screen.dart';
+import 'package:cashmate/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -66,7 +67,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
 
       // Fetch personal info
       final personalResponse = await http.get(
-        Uri.parse('https://cash.imvj.one/api/v1/users/me'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/users/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -78,26 +79,27 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         if (personalData['success'] == true) {
           final user = personalData['data']['user'];
           if (mounted) {
-          setState(() {
-            _fullNameController.text = user['fullname'] ?? '';
-            _emailController.text = user['email'] ?? '';
-            _phoneController.text = user['phoneNumber'] ?? '';
-            _pancardController.text = user['pancardNumber'] ?? '';
-            _pinCodeController.text = user['pinCode'] ?? '';
-            _maritalStatusController.text = user['maritalStatus'] ?? '';
-            gender = user['gender']?.toLowerCase() ?? '';
-            if (user['dateOfBirth'] != null) {
-              final dobParsed = DateTime.parse(user['dateOfBirth']);
-              _dobController.text = DateFormat('dd/MM/yyyy').format(dobParsed);
-            }
-          });
+            setState(() {
+              _fullNameController.text = user['fullname'] ?? '';
+              _emailController.text = user['email'] ?? '';
+              _phoneController.text = user['phoneNumber'] ?? '';
+              _pancardController.text = user['pancardNumber'] ?? '';
+              _pinCodeController.text = user['pinCode'] ?? '';
+              _maritalStatusController.text = user['maritalStatus'] ?? '';
+              gender = user['gender']?.toLowerCase() ?? '';
+              if (user['dateOfBirth'] != null) {
+                final dobParsed = DateTime.parse(user['dateOfBirth']);
+                _dobController.text =
+                    DateFormat('dd/MM/yyyy').format(dobParsed);
+              }
+            });
           }
         }
       }
 
       // Fetch employment info
       final employmentResponse = await http.get(
-        Uri.parse('https://cash.imvj.one/api/v1/employment-details/'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/employment-details/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -109,34 +111,35 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         if (employmentData['success'] == true &&
             employmentData['data'] != null) {
           if (mounted) {
-          setState(() {
-            hasEmploymentData = true;
+            setState(() {
+              hasEmploymentData = true;
 
-            // If backend still returns numeric/net value, keep previous text controller filled.
-            final netIncomeStr =
-                employmentData['data']['netMonthlyIncome']?.toString() ?? '';
-            _netMonthlyIncomeController.text = netIncomeStr;
+              // If backend still returns numeric/net value, keep previous text controller filled.
+              final netIncomeStr =
+                  employmentData['data']['netMonthlyIncome']?.toString() ?? '';
+              _netMonthlyIncomeController.text = netIncomeStr;
 
-            if (_incomeRanges.contains(netIncomeStr)) {
-              _selectedIncomeRange = netIncomeStr;
-            } else {
-              _selectedIncomeRange = _incomeRanges.first;
-            }
+              if (_incomeRanges.contains(netIncomeStr)) {
+                _selectedIncomeRange = netIncomeStr;
+              } else {
+                _selectedIncomeRange = _incomeRanges.first;
+              }
 
-            _companyNameController.text =
-                employmentData['data']['companyOrBusinessName'] ?? '';
-            _companyPinCodeController.text =
-                employmentData['data']['companyPinCode'] ?? '';
-            _salarySlipDocument =
-                employmentData['data']['salarySlipDocument'] ?? '';
+              _companyNameController.text =
+                  employmentData['data']['companyOrBusinessName'] ?? '';
+              _companyPinCodeController.text =
+                  employmentData['data']['companyPinCode'] ?? '';
+              _salarySlipDocument =
+                  employmentData['data']['salarySlipDocument'] ?? '';
 
-            final pm = employmentData['data']['paymentMode']?.toString() ?? '';
-            if (_paymentModes.contains(pm)) {
-              _selectedPaymentMode = pm;
-            } else {
-              _selectedPaymentMode = _paymentModes.first;
-            }
-          });
+              final pm =
+                  employmentData['data']['paymentMode']?.toString() ?? '';
+              if (_paymentModes.contains(pm)) {
+                _selectedPaymentMode = pm;
+              } else {
+                _selectedPaymentMode = _paymentModes.first;
+              }
+            });
           }
         }
       }
@@ -144,9 +147,9 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       _showSnackbar('Failed to fetch user data');
     } finally {
       if (mounted) {
-      setState(() {
-        isLoading = false;
-      });
+        setState(() {
+          isLoading = false;
+        });
       }
     }
   }
@@ -155,7 +158,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
     try {
       final token = localStorage.getItem('accessToken');
       final response = await http.put(
-        Uri.parse('https://cash.imvj.one/api/v1/users/me'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/users/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -175,9 +178,9 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       if (response.statusCode == 200) {
         _showSnackbar('Profile updated successfully');
         if (mounted) {
-        setState(() {
-          isPersonalInfoEditing = false;
-        });
+          setState(() {
+            isPersonalInfoEditing = false;
+          });
         }
       } else {
         _showSnackbar('Failed to update profile');
@@ -191,7 +194,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
     try {
       final token = localStorage.getItem('accessToken');
       final url =
-          Uri.parse('https://cash.imvj.one/api/v1/employment-details/');
+          Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/employment-details/');
 
       final payload = json.encode({
         // send selected string
@@ -237,9 +240,9 @@ class _MyProfileScreenState extends State<MyProfileScreen>
 
       if (result != null) {
         if (mounted) {
-        setState(() {
-          _salarySlipDocument = result.files.single.name;
-        });
+          setState(() {
+            _salarySlipDocument = result.files.single.name;
+          });
         }
       }
     } catch (e) {
@@ -275,7 +278,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFF003366), size: fontSize + 2),
+            Icon(icon, color: Colors.black, size: fontSize + 2),
             const SizedBox(width: 8),
             Expanded(
               child: TextField(
@@ -326,7 +329,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFF003366), size: fontSize + 2),
+            Icon(icon, color: Colors.black, size: fontSize + 2),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -358,8 +361,9 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                                   style: TextStyle(
                                     fontSize: fontSize,
                                     fontWeight: FontWeight.w600,
-                                    color:
-                                        enabled ? Colors.black : Colors.grey[700],
+                                    color: enabled
+                                        ? Colors.black
+                                        : Colors.grey[700],
                                   ),
                                 ),
                               ),
@@ -387,7 +391,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
             children: [
               CircleAvatar(
                 radius: 28,
-                backgroundColor: const Color(0xFF5C93B6),
+                backgroundColor: Colors.indigoAccent,
                 child: Text(
                   _fullNameController.text.isNotEmpty
                       ? _fullNameController.text[0].toUpperCase()
@@ -430,21 +434,22 @@ class _MyProfileScreenState extends State<MyProfileScreen>
             onPressed: () async {
               localStorage.clear();
               if (!mounted) return;
-              Navigator.of(context).pushReplacement(
+              Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (Route<dynamic> route) => false, // removes all previous routes
               );
             },
-            icon: const Icon(Icons.logout, color: Color(0xFF003366), size: 20),
+            icon: const Icon(Icons.logout, color: Colors.black87, size: 20),
             label: const Text(
               'Logout',
               style: TextStyle(
-                color: Color(0xFF003366),
+                color: Colors.black87,
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
               ),
             ),
             style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF003366),
+              foregroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
               minimumSize: const Size(0, 36),
             ),
@@ -465,9 +470,9 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       child: TabBar(
         controller: _tabController,
         labelColor: Colors.white,
-        unselectedLabelColor: const Color(0xFF003366),
+        unselectedLabelColor: Colors.black,
         indicator: BoxDecoration(
-          color: const Color(0xFF003366),
+          color: Colors.indigoAccent,
           borderRadius: BorderRadius.circular(20),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
@@ -560,9 +565,9 @@ class _MyProfileScreenState extends State<MyProfileScreen>
             onChanged: (val) {
               if (val != null) {
                 if (mounted) {
-                setState(() {
-                  _selectedIncomeRange = val;
-                });
+                  setState(() {
+                    _selectedIncomeRange = val;
+                  });
                 }
               }
             },
@@ -593,9 +598,9 @@ class _MyProfileScreenState extends State<MyProfileScreen>
             onChanged: (val) {
               if (val != null) {
                 if (mounted) {
-                setState(() {
-                  _selectedPaymentMode = val;
-                });
+                  setState(() {
+                    _selectedPaymentMode = val;
+                  });
                 }
               }
             },
@@ -609,8 +614,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: Row(
                 children: [
-                  const Icon(Icons.file_present,
-                      color: Color(0xFF003366), size: 15),
+                  const Icon(Icons.file_present, color: Colors.black, size: 15),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -637,7 +641,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                   else if (_salarySlipDocument.isNotEmpty)
                     IconButton(
                       icon: const Icon(Icons.visibility,
-                          color: Color(0xFF003366), size: 15),
+                          color: Colors.black, size: 15),
                       onPressed: () {
                         showDialog(
                           context: context,
@@ -672,7 +676,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                 style: const TextStyle(fontSize: 13, color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF003366),
+                backgroundColor: Colors.indigoAccent,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -685,9 +689,9 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                   _updateEmploymentInfo();
                 } else {
                   if (mounted) {
-                  setState(() {
-                    isEmploymentInfoEditing = true;
-                  });
+                    setState(() {
+                      isEmploymentInfoEditing = true;
+                    });
                   }
                 }
               },
@@ -717,11 +721,12 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                       children: [
                         Center(
                           child: Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
+                            padding:
+                                const EdgeInsets.only(bottom: 8.0, top: 16.0),
                             child: Image.asset(
-                              'assets/image/Cashmate-logo.jpg',
-                              width: isSmallScreen ? screenWidth * 0.9 : 240,
-                              height: isSmallScreen ? 80 : 100,
+                              'assets/image/Cashmate-logo.png',
+                              width: isSmallScreen ? screenWidth * 0.6 : 180,
+                              height: isSmallScreen ? 60 : 80,
                               fit: BoxFit.contain,
                             ),
                           ),

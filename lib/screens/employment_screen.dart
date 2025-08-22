@@ -66,7 +66,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
       await initLocalStorage();
       final token = localStorage.getItem('accessToken');
       final response = await http.get(
-        Uri.parse('https://cash.imvj.one/api/v1/employment-details'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/employment-details'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -158,7 +158,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://cash.imvj.one/api/v1/loan/request'),
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/loan/request'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -234,7 +234,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                     ),
                     Center(
                       child: Image.asset(
-                        'assets/image/Cashmate-logo.jpg',
+                        'assets/image/Cashmate-logo.png',
                         width: 190,
                         height: 100,
                         fit: BoxFit.contain,
@@ -458,7 +458,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
 
                     _isSubmitting
                         ? Center(
-                            child: Image.asset('assets/image/Cashmate-logo.jpg',
+                            child: Image.asset('assets/image/Cashmate-logo.png',
                                 width: 100, height: 100))
                         : CustomButton(
                             text: 'Submit',
