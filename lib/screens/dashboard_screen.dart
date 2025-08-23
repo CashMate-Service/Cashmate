@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:cashmate/screens/employment_screen.dart';
-import 'package:cashmate/utils/app_colors.dart';
+import 'package:infinz/screens/employment_screen.dart';
+import 'package:infinz/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';

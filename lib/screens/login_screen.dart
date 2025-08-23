@@ -1,7 +1,8 @@
 // import 'package:cashmate_loan_app/screens/details_screen.dart';
 import 'dart:io';
-import 'package:cashmate/screens/details_screen.dart';
-import 'package:cashmate/screens/main_screen.dart';
+import 'package:infinz/screens/details_screen.dart';
+import 'package:infinz/screens/main_screen.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -11,6 +12,7 @@ import 'dart:convert';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:localstorage/localstorage.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/progress_indicator_widget.dart';
 import '../utils/app_colors.dart';
@@ -54,7 +56,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/auth/send-otp/'),
+        Uri.parse(
+            'https://backend.infinz.seabed2crest.com/api/v1/auth/send-otp/'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -113,7 +116,8 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('Google ID Token: $idToken');
 
       final response = await http.post(
-        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/auth/google-login'),
+        Uri.parse(
+            'https://backend.infinz.seabed2crest.com/api/v1/auth/google-login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'id_token': idToken}),
       );
@@ -171,7 +175,8 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('Apple Identity Token: $idToken');
 
       final response = await http.post(
-        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/auth/apple-login'),
+        Uri.parse(
+            'https://backend.infinz.seabed2crest.com/api/v1/auth/apple-login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'id_token': idToken}),
       );
@@ -483,15 +488,92 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         // -----------------------------------------------------------------
 
+                        // Inside your widget tree:
                         const SizedBox(height: 16),
-                        const Text(
-                          'By continuing, you agree to our Terms and Conditions\nand Privacy Policy',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black,
-                            height: 1.5,
-                          ),
+                        RichText(
                           textAlign: TextAlign.center,
+                          text: TextSpan(
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black,
+                              height: 1.5,
+                            ),
+                            children: [
+                              const TextSpan(
+                                  text: 'By continuing, you agree to our '),
+                              TextSpan(
+                                text: 'Terms and Conditions',
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  decoration: TextDecoration.underline,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () async {
+                                    final Uri url = Uri.parse(
+                                        'https://www.seabed2crest.com/privacy-policy');
+                                    try {
+                                      if (await canLaunchUrl(url)) {
+                                        await launchUrl(
+                                          url,
+                                          mode: LaunchMode.inAppWebView,
+                                        );
+                                      } else {
+                                        // Fallback: Try external application mode
+                                        await launchUrl(
+                                          url,
+                                          mode: LaunchMode.externalApplication,
+                                        );
+                                      }
+                                    } catch (e) {
+                                      // Final fallback: Show an alert or snackbar
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Could not open the link. Please check your browser app.'),
+                                        ),
+                                      );
+                                    }
+                                  },
+                              ),
+                              const TextSpan(text: ' and '),
+                              TextSpan(
+                                text: 'Privacy Policy',
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  decoration: TextDecoration.underline,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () async {
+                                    final Uri url = Uri.parse(
+                                        'https://www.seabed2crest.com/privacy-policy');
+                                    try {
+                                      if (await canLaunchUrl(url)) {
+                                        await launchUrl(
+                                          url,
+                                          mode: LaunchMode.inAppWebView,
+                                        );
+                                      } else {
+                                        // Fallback: Try external application mode
+                                        await launchUrl(
+                                          url,
+                                          mode: LaunchMode.externalApplication,
+                                        );
+                                      }
+                                    } catch (e) {
+                                      // Final fallback: Show an alert or snackbar
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              'Could not open the link. Please check your browser app.'),
+                                        ),
+                                      );
+                                    }
+                                  },
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

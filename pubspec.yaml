@@ -1,6 +1,6 @@
-name: cashmate
-description: Cash Mate Instant Loan Application
-version: 1.0.0+1
+name: infinz
+description: Infinz - Your Financial Advisor
+version: 1.0.2+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -33,6 +33,7 @@ dependencies:
   another_telephony: ^0.4.1
   animated_bottom_navigation_bar: ^1.4.0
   sign_in_with_apple: ^7.0.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

@@ -28,7 +28,7 @@ class CashMateApp extends StatelessWidget {
       },
       behavior: HitTestBehavior.opaque, // Detect taps on empty spaces
       child: MaterialApp(
-        title: 'Cash Mate - Instant Loan Application',
+        title: 'Infinz - Your Financial Advisor',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.blue,

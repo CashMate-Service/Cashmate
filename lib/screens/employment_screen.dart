@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 import 'package:lottie/lottie.dart';
 import 'package:localstorage/localstorage.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../utils/app_colors.dart';
 import '../widgets/custom_button.dart';
@@ -66,7 +68,8 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
       await initLocalStorage();
       final token = localStorage.getItem('accessToken');
       final response = await http.get(
-        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/employment-details'),
+        Uri.parse(
+            'https://backend.infinz.seabed2crest.com/api/v1/employment-details'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -79,7 +82,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
         if (mounted) {
           setState(() {
             selectedEmploymentType = data['employmentType'] ?? '';
-            
+
             // Handle income range dropdown
             final netIncomeStr = data['netMonthlyIncome']?.toString() ?? '';
             if (_incomeRanges.contains(netIncomeStr)) {
@@ -87,7 +90,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
             } else {
               _selectedIncomeRange = _incomeRanges.first;
             }
-            
+
             // Handle payment mode dropdown
             final paymentModeStr = data['paymentMode']?.toString() ?? '';
             if (_paymentModes.contains(paymentModeStr)) {
@@ -95,7 +98,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
             } else {
               _selectedPaymentMode = _paymentModes.first;
             }
-            
+
             _companyNameController.text = data['companyOrBusinessName'] ?? '';
             _companyCodeController.text = data['companyPinCode'] ?? '';
             _isLoading = false;
@@ -158,7 +161,8 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/loan/request'),
+        Uri.parse(
+            'https://backend.infinz.seabed2crest.com/api/v1/loan/request'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -322,120 +326,120 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
 
                     const SizedBox(height: 24),
 
-                                          if (selectedEmploymentType == 'salaried') ...[
-                        DropdownButtonFormField<String>(
-                          value: _selectedIncomeRange.isNotEmpty
-                              ? _selectedIncomeRange
-                              : null,
-                          decoration: const InputDecoration(
-                            labelText: 'Net Monthly Income *',
-                            border: OutlineInputBorder(),
+                    if (selectedEmploymentType == 'salaried') ...[
+                      DropdownButtonFormField<String>(
+                        value: _selectedIncomeRange.isNotEmpty
+                            ? _selectedIncomeRange
+                            : null,
+                        decoration: const InputDecoration(
+                          labelText: 'Net Monthly Income *',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _incomeRanges
+                            .map((range) => DropdownMenuItem(
+                                  value: range,
+                                  child: Text(range),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedIncomeRange = value ?? '');
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: _selectedPaymentMode.isNotEmpty
+                            ? _selectedPaymentMode
+                            : null,
+                        decoration: const InputDecoration(
+                          labelText: 'Payment Mode *',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _paymentModes
+                            .map((mode) => DropdownMenuItem(
+                                  value: mode,
+                                  child: Text(mode),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedPaymentMode = value ?? '');
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        label: 'Company/Business Name',
+                        placeholder: 'Enter company name',
+                        controller: _companyNameController,
+                        isRequired: true,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        label: 'Company PinCode',
+                        placeholder: 'Enter pin code',
+                        controller: _companyCodeController,
+                        isRequired: true,
+                      ),
+                      const SizedBox(height: 20),
+                      InkWell(
+                        onTap: _isUploading ? null : _pickDocument,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.grey[100],
                           ),
-                          items: _incomeRanges
-                              .map((range) => DropdownMenuItem(
-                                    value: range,
-                                    child: Text(range),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() => _selectedIncomeRange = value ?? '');
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          value: _selectedPaymentMode.isNotEmpty
-                              ? _selectedPaymentMode
-                              : null,
-                          decoration: const InputDecoration(
-                            labelText: 'Payment Mode *',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: _paymentModes
-                              .map((mode) => DropdownMenuItem(
-                                    value: mode,
-                                    child: Text(mode),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() => _selectedPaymentMode = value ?? '');
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        CustomTextField(
-                          label: 'Company/Business Name',
-                          placeholder: 'Enter company name',
-                          controller: _companyNameController,
-                          isRequired: true,
-                        ),
-                        const SizedBox(height: 16),
-                        CustomTextField(
-                          label: 'Company PinCode',
-                          placeholder: 'Enter pin code',
-                          controller: _companyCodeController,
-                          isRequired: true,
-                        ),
-                        const SizedBox(height: 20),
-                        InkWell(
-                          onTap: _isUploading ? null : _pickDocument,
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.grey[100],
-                            ),
-                            child: Column(
-                              children: [
+                          child: Column(
+                            children: [
+                              _isUploading
+                                  ? const CircularProgressIndicator()
+                                  : const Icon(Icons.upload_file,
+                                      size: 40, color: Colors.grey),
+                              const SizedBox(height: 8),
+                              Text(
                                 _isUploading
-                                    ? const CircularProgressIndicator()
-                                    : const Icon(Icons.upload_file,
-                                        size: 40, color: Colors.grey),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _isUploading
-                                      ? 'Uploading...'
-                                      : 'Upload Salary Slip/Bank Statement',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w500),
-                                ),
-                                const SizedBox(height: 4),
-                                const Text(
-                                  'PDF, JPG, PNG (MAX 5MB)',
-                                  style:
-                                      TextStyle(fontSize: 12, color: Colors.grey),
-                                ),
-                                if (_selectedFile != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            _selectedFile!.name,
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.green,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            maxLines: 1,
+                                    ? 'Uploading...'
+                                    : 'Upload Salary Slip/Bank Statement',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'PDF, JPG, PNG (MAX 5MB)',
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                              if (_selectedFile != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          _selectedFile!.name,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.green,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
+                                          maxLines: 1,
                                         ),
-                                        IconButton(
-                                          icon: const Icon(Icons.close, size: 16),
-                                          onPressed: () => setState(
-                                              () => _selectedFile = null),
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.close, size: 16),
+                                        onPressed: () => setState(
+                                            () => _selectedFile = null),
+                                      ),
+                                    ],
                                   ),
-                              ],
-                            ),
+                                ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 20),
-                      ],
+                      ),
+                      const SizedBox(height: 20),
+                    ],
 
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,10 +450,93 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                               setState(() => _agreedToTerms = value ?? false),
                         ),
                         Expanded(
-                          child: Text(
-                            'I agree to the Terms and Conditions and confirm that the information provided is accurate.',
-                            style: TextStyle(
-                                fontSize: 13, color: Colors.grey[800]),
+                          child: RichText(
+                            text: TextSpan(
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[800],
+                                height: 1.4,
+                              ),
+                              children: [
+                                const TextSpan(text: 'I agree to the '),
+                                TextSpan(
+                                  text: 'Terms and Conditions',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () async {
+                                      final Uri url = Uri.parse(
+                                          'https://www.seabed2crest.com/terms-conditions');
+                                      try {
+                                        if (await canLaunchUrl(url)) {
+                                          await launchUrl(
+                                            url,
+                                            mode: LaunchMode.inAppWebView,
+                                          );
+                                        } else {
+                                          // Fallback: Try external application mode
+                                          await launchUrl(
+                                            url,
+                                            mode:
+                                                LaunchMode.externalApplication,
+                                          );
+                                        }
+                                      } catch (e) {
+                                        // Final fallback: Show an alert or snackbar
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Could not open the link. Please check your browser app.'),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                ),
+                                const TextSpan(text: ' and '),
+                                TextSpan(
+                                  text: 'Privacy Policy',
+                                  style: const TextStyle(
+                                    color: Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () async {
+                                      final Uri url = Uri.parse(
+                                          'https://www.seabed2crest.com/privacy-policy');
+                                      try {
+                                        if (await canLaunchUrl(url)) {
+                                          await launchUrl(
+                                            url,
+                                            mode: LaunchMode.inAppWebView,
+                                          );
+                                        } else {
+                                          // Fallback: Try external application mode
+                                          await launchUrl(
+                                            url,
+                                            mode:
+                                                LaunchMode.externalApplication,
+                                          );
+                                        }
+                                      } catch (e) {
+                                        // Final fallback: Show an alert or snackbar
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Could not open the link. Please check your browser app.'),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                ),
+                                const TextSpan(
+                                    text:
+                                        ' and confirm that the information provided is accurate.'),
+                              ],
+                            ),
                           ),
                         ),
                       ],

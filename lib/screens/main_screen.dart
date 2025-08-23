@@ -1,10 +1,10 @@
-import 'package:cashmate/utils/app_colors.dart';
+import 'package:infinz/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 
-import 'package:cashmate/screens/dashboard_screen.dart';
-import 'package:cashmate/screens/history_screen.dart';
-import 'package:cashmate/screens/profile_screen.dart';
+import 'package:infinz/screens/dashboard_screen.dart';
+import 'package:infinz/screens/history_screen.dart';
+import 'package:infinz/screens/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
