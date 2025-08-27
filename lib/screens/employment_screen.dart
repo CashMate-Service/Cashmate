@@ -247,7 +247,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                     const SizedBox(height: 10),
                     const Center(
                       child: Text(
-                        'Start Your Loan Journey Today',
+                        'Start Your Financial Journey Today',
                         style:
                             TextStyle(fontSize: 14, color: AppColors.textMuted),
                       ),
@@ -278,7 +278,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                           ? selectedLoanRange
                           : '1 to 2 Lakhs',
                       decoration: const InputDecoration(
-                        labelText: 'Desired Amount *',
+                        labelText: 'Savings Amount *',
                         border: OutlineInputBorder(),
                       ),
                       items: const [

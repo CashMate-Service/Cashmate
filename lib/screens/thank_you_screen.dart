@@ -88,7 +88,7 @@ class _ThankYouScreenState extends State<ThankYouScreen> {
                       ),
                       const SizedBox(height: 24),
                       const Text(
-                        'Your loan application has been submitted successfully. Our team will review your application and get back to you shortly.',
+                        'Your application has been submitted successfully. Our team will review your application and get back to you shortly.',
                         style: TextStyle(
                           fontSize: 16,
                           color: AppColors.textMuted,
@@ -108,7 +108,7 @@ class _ThankYouScreenState extends State<ThankYouScreen> {
                       ),
                       const SizedBox(height: 24),
                       const Text(
-                        'Thank you for choosing Cash Mate for your financial needs.',
+                        'Thank you for choosing Infinz as your financial advisor.',
                         style: TextStyle(
                           fontSize: 14,
                           color: AppColors.textMuted,

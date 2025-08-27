@@ -88,7 +88,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                   // const SizedBox(height: 24),
                     //  const SizedBox(height: 20),
                     const Text(
-                  "Disclaimer: Infinz provides loan suggestions only and is not a lender or financial institution. ",
+                  "Disclaimer: Infinz provides financial advices only and is not a lender or financial institution. ",
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
@@ -111,7 +111,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Get Loan Suggestions',
+                            'Get Financial Advice',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -127,7 +127,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                   if (pendingLoanRequest != null) ...[
                     const SizedBox(height: 16),
                     Text(
-                      'Loan Suggestions',
+                      'Financial Advices',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -137,7 +137,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                   ],
                   const SizedBox(height: 32),
                   Text(
-                    'Recent loan Suggestions',
+                    'Recent Financial Advices Given',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -145,7 +145,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                   const SizedBox(height: 16),
                   if (completedLoanRequests.isEmpty)
                     const Text(
-                      'No Suggestions found',
+                      'No Advices found',
                       style: TextStyle(color: Colors.grey),
                     )
                   else
