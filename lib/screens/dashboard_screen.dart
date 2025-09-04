@@ -88,7 +88,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                   // const SizedBox(height: 24),
                     //  const SizedBox(height: 20),
                     const Text(
-                  "Disclaimer: Infinz provides financial advices only and is not a lender or financial institution. ",
+                  "Disclaimer: Infinz provides loan suggestions only and is not a lender or financial institution. ",
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
@@ -127,7 +127,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                   if (pendingLoanRequest != null) ...[
                     const SizedBox(height: 16),
                     Text(
-                      'Financial Advices',
+                      '',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -137,7 +137,7 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                   ],
                   const SizedBox(height: 32),
                   Text(
-                    'Recent Financial Advices Given',
+                    'Recent Requests',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

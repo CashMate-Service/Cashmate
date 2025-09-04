@@ -98,7 +98,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             const SizedBox(height: 32),
             const Text(
-              'Financial Advice Applications',
+              'Loan Suggestions',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -136,7 +136,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     if (loanRequests.isEmpty) {
       return const Center(
-        child: Text('No Advice Applications Found'),
+        child: Text('No Requests Found'),
       );
     }
 
@@ -166,7 +166,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Row(
                 children: [
                   const Text(
-                    'Savings Amount',
+                    'Amount',
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textMuted,

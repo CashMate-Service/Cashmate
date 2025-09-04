@@ -278,7 +278,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                           ? selectedLoanRange
                           : '1 to 2 Lakhs',
                       decoration: const InputDecoration(
-                        labelText: 'Savings Amount *',
+                        labelText: 'Amount *',
                         border: OutlineInputBorder(),
                       ),
                       items: const [
