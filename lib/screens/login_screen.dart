@@ -418,16 +418,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: Colors.grey.shade300,
                               ),
                             ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8),
-                              child: Text(
-                                'OR CONTINUE WITH',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textMuted,
-                                ),
-                              ),
-                            ),
+                            // const Padding(
+                            //   padding: EdgeInsets.symmetric(horizontal: 8),
+                            //   child: Text(
+                            //     'OR CONTINUE WITH',
+                            //     style: TextStyle(
+                            //       fontSize: 12,
+                            //       color: AppColors.textMuted,
+                            //     ),
+                            //   ),
+                            // ),
                             Expanded(
                               child: Container(
                                 height: 1,
@@ -439,53 +439,53 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 24),
 
                         // Google
-                        SizedBox(
-                          width: double.infinity,
-                          height: 40,
-                          child: OutlinedButton(
-                            onPressed: _isLoading ? null : _handleGoogleSignIn,
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Colors.grey.shade300),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                FaIcon(
-                                  FontAwesomeIcons.google,
-                                  size: 20,
-                                  color: Colors.blue,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Continue with Google',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.normal,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        // SizedBox(
+                        //   width: double.infinity,
+                        //   height: 40,
+                        //   child: OutlinedButton(
+                        //     onPressed: _isLoading ? null : _handleGoogleSignIn,
+                        //     style: OutlinedButton.styleFrom(
+                        //       side: BorderSide(color: Colors.grey.shade300),
+                        //       shape: RoundedRectangleBorder(
+                        //         borderRadius: BorderRadius.circular(4),
+                        //       ),
+                        //     ),
+                        //     child: const Row(
+                        //       mainAxisAlignment: MainAxisAlignment.center,
+                        //       children: [
+                        //         FaIcon(
+                        //           FontAwesomeIcons.google,
+                        //           size: 20,
+                        //           color: Colors.blue,
+                        //         ),
+                        //         SizedBox(width: 8),
+                        //         Text(
+                        //           'Continue with Google',
+                        //           style: TextStyle(
+                        //             fontSize: 16,
+                        //             fontWeight: FontWeight.normal,
+                        //             color: Colors.black,
+                        //           ),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
 
                         const SizedBox(height: 12),
 
                         // ---------------- NEW: Apple Button (only on iOS) ----------------
-                        if (Platform.isIOS)
-                          SizedBox(
-                            width: double.infinity,
-                            height: 44,
-                            child: SignInWithAppleButton(
-                              onPressed: _isLoading ? null : _handleAppleSignIn,
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(4)),
-                              text: 'Continue with Apple',
-                            ),
-                          ),
+                        // if (Platform.isIOS)
+                        //   SizedBox(
+                        //     width: double.infinity,
+                        //     height: 44,
+                        //     child: SignInWithAppleButton(
+                        //       onPressed: _isLoading ? null : _handleAppleSignIn,
+                        //       borderRadius:
+                        //           const BorderRadius.all(Radius.circular(4)),
+                        //       text: 'Continue with Apple',
+                        //     ),
+                        //   ),
                         // -----------------------------------------------------------------
 
                         // Inside your widget tree:
