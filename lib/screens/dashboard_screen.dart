@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:infinz/screens/employment_screen.dart';
 import 'package:infinz/utils/app_colors.dart';
+import 'package:flutter/foundation.dart'; // for kIsWeb
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -73,7 +74,6 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Header
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: const BoxDecoration(
@@ -104,8 +104,6 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                     ],
                   ),
                 ),
-                
-                // Content
                 Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -120,7 +118,6 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
                       const Text(
                         '• Infinz provides loan suggestions and financial advice only\n'
                         '• We are not a lender or financial institution\n'
@@ -133,7 +130,6 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
                       const Text(
                         'Loan Terms:',
                         style: TextStyle(
@@ -143,7 +139,6 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -158,11 +153,14 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                               children: [
                                 Text(
                                   'Loan Amount:',
-                                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.grey),
                                 ),
                                 Text(
                                   '₹10,000 - ₹5,00,000',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500),
                                 ),
                               ],
                             ),
@@ -172,11 +170,14 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                               children: [
                                 Text(
                                   'Interest Rate:',
-                                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.grey),
                                 ),
                                 Text(
                                   '12% - 24% p.a.',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500),
                                 ),
                               ],
                             ),
@@ -186,11 +187,14 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                               children: [
                                 Text(
                                   'Tenure:',
-                                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.grey),
                                 ),
                                 Text(
                                   '6 - 60 months',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500),
                                 ),
                               ],
                             ),
@@ -200,11 +204,14 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                               children: [
                                 Text(
                                   'Processing Fee:',
-                                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.grey),
                                 ),
                                 Text(
                                   'Up to 3% of loan amount',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500),
                                 ),
                               ],
                             ),
@@ -212,7 +219,6 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
                       const Text(
                         '*Terms may vary based on your profile and lender policies.',
                         style: TextStyle(
@@ -224,8 +230,6 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
                     ],
                   ),
                 ),
-                
-                // Action buttons
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                   child: Row(
@@ -302,92 +306,99 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
     final theme = Theme.of(context);
     final width = MediaQuery.of(context).size.width;
 
+    Widget content = isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : ListView(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            children: [
+              Center(
+                child: Image.asset(
+                  'assets/image/Cashmate-logo.png',
+                  width: kIsWeb ? width * 0.1 : width * 0.5,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Disclaimer: Infinz provides loan suggestions only and is not a lender or financial institution.",
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(height: 20),
+              if (pendingLoanRequest == null)
+                ElevatedButton(
+                  onPressed: _showDisclaimerModal,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigoAccent,
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Get Financial Advice',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward,
+                          size: 18, color: Colors.white),
+                    ],
+                  ),
+                ),
+              if (pendingLoanRequest != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  '',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildLoanCard(pendingLoanRequest!),
+              ],
+              const SizedBox(height: 32),
+              Text(
+                'Recent Requests',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (completedLoanRequests.isEmpty)
+                const Text(
+                  'No Requests found',
+                  style: TextStyle(color: Colors.grey),
+                )
+              else
+                ...completedLoanRequests
+                    .map((req) => _buildLoanCard(req))
+                    .toList(),
+            ],
+          );
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : ListView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                children: [
-                  Center(
-                    child: Image.asset(
-                      'assets/image/Cashmate-logo.png',
-                      width: width * 0.5,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  // const SizedBox(height: 24),
-                    //  const SizedBox(height: 20),
-                    const Text(
-                  "Disclaimer: Infinz provides loan suggestions only and is not a lender or financial institution. ",
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.left,
+        child: kIsWeb
+            ? Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  child: content,
                 ),
-                const SizedBox(height: 20),
-                  if (pendingLoanRequest == null)
-                    ElevatedButton(
-                      onPressed: _showDisclaimerModal,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.indigoAccent,
-                        minimumSize: const Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Get Financial Advice',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward,
-                              size: 18, color: Colors.white),
-                        ],
-                      ),
-                    ),
-                  if (pendingLoanRequest != null) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      '',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildLoanCard(pendingLoanRequest!),
-                  ],
-                  const SizedBox(height: 32),
-                  Text(
-                    'Recent Requests',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (completedLoanRequests.isEmpty)
-                    const Text(
-                      'No Advices found',
-                      style: TextStyle(color: Colors.grey),
-                    )
-                  else
-                    ...completedLoanRequests
-                        .map((req) => _buildLoanCard(req))
-                        .toList(),
-                        
-                ],
-              ),
+              )
+            : content,
       ),
     );
   }
@@ -450,11 +461,6 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          // Text(
-          //   'Request ID :  ${req['_id']}',
-          //   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-          // ),
-          // const SizedBox(height: 6),
           Row(
             children: [
               const Icon(Icons.access_time, size: 14, color: Colors.grey),
@@ -467,47 +473,6 @@ class _LoanHomeScreenState extends State<LoanHomeScreen> {
           )
         ],
       ),
-    );
-  }
-
-  Widget _buildLoanTerm(String title, String value, String description) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: '$title ',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              TextSpan(
-                text: value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.indigoAccent,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          description,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-            fontStyle: FontStyle.italic,
-            height: 1.3,
-          ),
-          softWrap: true,
-        ),
-      ],
     );
   }
 

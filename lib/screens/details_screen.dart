@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:infinz/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
@@ -334,202 +335,212 @@ class _DetailsScreenState extends State<DetailsScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (isLoading) {
-      return Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
-          child: Lottie.asset(
-            'assets/lottie/Money.json',
-            width: 200,
-            height: 200,
-            fit: BoxFit.contain,
-          ),
-        ),
-      );
-    }
-
+@override
+Widget build(BuildContext context) {
+  if (isLoading) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                Image.asset(
-                  'assets/image/Cashmate-logo.png',
-                  height: 70,
-                ),
-                const SizedBox(height: 24),
-                CustomTextField(
-                  label: 'Full Name',
-                  placeholder: 'Enter your full name',
-                  controller: _fullNameController,
-                  validator: _validateFullName,
-                  isRequired: true,
-                ),
-                const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: () => _selectDate(context),
-                  child: AbsorbPointer(
-                    child: CustomTextField(
-                      label: 'Date of Birth',
-                      placeholder: 'Select date of birth',
-                      controller: _dobController,
-                      validator: _validateDOB,
-                      isRequired: true,
-                      suffixIcon: const Icon(Icons.calendar_today, size: 20),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: selectedGender.isNotEmpty ? selectedGender : null,
-                  decoration: const InputDecoration(
-                    labelText: 'Gender *',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: ['Male', 'Female', 'Other']
-                      .map((e) => DropdownMenuItem(
-                            value: e.toLowerCase(),
-                            child: Text(e),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() => selectedGender = value ?? '');
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select your gender';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'PAN Card',
-                  placeholder: 'ABCDE1234F',
-                  controller: _pancardController,
-                  validator: _validatePanCard,
-                  isRequired: true,
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Email',
-                  placeholder: 'Enter email',
-                  controller: _emailController,
-                  validator: _validateEmail,
-                  isRequired: true,
-                ),
-                const SizedBox(height: 16),
-                if (showPhoneField) ...[
-                  CustomTextField(
-                    label: 'Phone Number',
-                    placeholder: 'Enter phone number',
-                    controller: _phoneController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty)
-                        return 'Phone number is required';
-                      if (!RegExp(r'^[0-9]{10}').hasMatch(value))
-                        return 'Enter valid 10 digit number';
-                      return null;
-                    },
-                    isRequired: true,
-                    keyboardType: TextInputType.number,
-                    suffixIcon: isPhoneVerified
-                        ? const Icon(Icons.check_circle, color: Colors.green)
-                        : null,
-                  ),
-                  if (!isPhoneVerified && showVerifyButton)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          onPressed: isSendingOtp ? null : _sendOtp,
-                          child: isSendingOtp
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2))
-                              : const Text('Verify'),
-                        ),
-                      ),
-                    ),
-                  if (showOtpField && !isPhoneVerified)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomTextField(
-                            label: 'Enter OTP',
-                            placeholder: '6 digit code',
-                            controller: _otpController,
-                            keyboardType: TextInputType.number,
-                            isRequired: true,
-                          ),
-                          if (otpError.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4.0),
-                              child: Text(otpError,
-                                  style: const TextStyle(color: Colors.red)),
-                            ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: isVerifyingOtp ? null : _verifyOtp,
-                              child: isVerifyingOtp
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2))
-                                  : const Text('Verify OTP'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Pincode',
-                  placeholder: 'Enter pincode',
-                  controller: _pincodeController,
-                  validator: _validatePincode,
-                  isRequired: true,
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 24),
-                CustomButton(
-                  text: 'Continue',
-                  onPressed: _submitForm,
-                  isLoading: isSubmitting,
-                ),
-              ],
-            ),
-          ),
+      body: Center(
+        child: Lottie.asset(
+          'assets/lottie/Money.json',
+          width: 200,
+          height: 200,
+          fit: BoxFit.contain,
         ),
       ),
     );
   }
+
+  final content = SingleChildScrollView(
+    padding: const EdgeInsets.all(16),
+    child: Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          Image.asset(
+            'assets/image/Cashmate-logo.png',
+            height: 70,
+          ),
+          const SizedBox(height: 24),
+          CustomTextField(
+            label: 'Full Name',
+            placeholder: 'Enter your full name',
+            controller: _fullNameController,
+            validator: _validateFullName,
+            isRequired: true,
+          ),
+          const SizedBox(height: 16),
+          GestureDetector(
+            onTap: () => _selectDate(context),
+            child: AbsorbPointer(
+              child: CustomTextField(
+                label: 'Date of Birth',
+                placeholder: 'Select date of birth',
+                controller: _dobController,
+                validator: _validateDOB,
+                isRequired: true,
+                suffixIcon: const Icon(Icons.calendar_today, size: 20),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            value: selectedGender.isNotEmpty ? selectedGender : null,
+            decoration: const InputDecoration(
+              labelText: 'Gender *',
+              border: OutlineInputBorder(),
+            ),
+            items: ['Male', 'Female', 'Other']
+                .map((e) => DropdownMenuItem(
+                      value: e.toLowerCase(),
+                      child: Text(e),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              setState(() => selectedGender = value ?? '');
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please select your gender';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          CustomTextField(
+            label: 'PAN Card',
+            placeholder: 'ABCDE1234F',
+            controller: _pancardController,
+            validator: _validatePanCard,
+            isRequired: true,
+          ),
+          const SizedBox(height: 16),
+          CustomTextField(
+            label: 'Email',
+            placeholder: 'Enter email',
+            controller: _emailController,
+            validator: _validateEmail,
+            isRequired: true,
+          ),
+          const SizedBox(height: 16),
+          if (showPhoneField) ...[
+            CustomTextField(
+              label: 'Phone Number',
+              placeholder: 'Enter phone number',
+              controller: _phoneController,
+              validator: (value) {
+                if (value == null || value.isEmpty)
+                  return 'Phone number is required';
+                if (!RegExp(r'^[0-9]{10}').hasMatch(value))
+                  return 'Enter valid 10 digit number';
+                return null;
+              },
+              isRequired: true,
+              keyboardType: TextInputType.number,
+              suffixIcon: isPhoneVerified
+                  ? const Icon(Icons.check_circle, color: Colors.green)
+                  : null,
+            ),
+            if (!isPhoneVerified && showVerifyButton)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: isSendingOtp ? null : _sendOtp,
+                    child: isSendingOtp
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2))
+                        : const Text('Verify'),
+                  ),
+                ),
+              ),
+            if (showOtpField && !isPhoneVerified)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomTextField(
+                      label: 'Enter OTP',
+                      placeholder: '6 digit code',
+                      controller: _otpController,
+                      keyboardType: TextInputType.number,
+                      isRequired: true,
+                    ),
+                    if (otpError.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(otpError,
+                            style: const TextStyle(color: Colors.red)),
+                      ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: isVerifyingOtp ? null : _verifyOtp,
+                        child: isVerifyingOtp
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2))
+                            : const Text('Verify OTP'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+          const SizedBox(height: 16),
+          CustomTextField(
+            label: 'Pincode',
+            placeholder: 'Enter pincode',
+            controller: _pincodeController,
+            validator: _validatePincode,
+            isRequired: true,
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 24),
+          CustomButton(
+            text: 'Continue',
+            onPressed: _submitForm,
+            isLoading: isSubmitting,
+          ),
+        ],
+      ),
+    ),
+  );
+
+  return Scaffold(
+    backgroundColor: Colors.white,
+    body: SafeArea(
+      child: kIsWeb
+          ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 700),
+                child: content,
+              ),
+            )
+          : content,
+    ),
+  );
+}
+
 }

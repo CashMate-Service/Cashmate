@@ -53,6 +53,13 @@
             {
               "client_id": "792116662636-k0i4t14o983o376bcb2dausnqgcrcdg4.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "792116662636-tli39v9ouj9mu4nuf1bjtiathp2or45g.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.cashmate.loan"
+              }
             }
           ]
         }

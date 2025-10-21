@@ -1,5 +1,5 @@
-// import 'package:cashmate_loan_app/screens/details_screen.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart'; // Add this for kIsWeb
 import 'package:infinz/screens/details_screen.dart';
 import 'package:infinz/screens/main_screen.dart';
 import 'package:flutter/gestures.dart';
@@ -29,10 +29,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   bool _isValidPhoneNumber = false;
   bool _isLoading = false;
-
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email'],
-  );
 
   @override
   void initState() {
@@ -104,486 +100,309 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _handleGoogleSignIn() async {
-    setState(() => _isLoading = true);
-    try {
-      await _googleSignIn.signOut();
-      final account = await _googleSignIn.signIn();
-      final auth = await account?.authentication;
-      final idToken = auth?.idToken;
-
-      if (idToken == null) throw Exception("No ID token received");
-      debugPrint('Google ID Token: $idToken');
-
-      final response = await http.post(
-        Uri.parse(
-            'https://backend.infinz.seabed2crest.com/api/v1/auth/google-login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'id_token': idToken}),
-      );
-
-      final res = jsonDecode(response.body);
-      if (res['success'] == true && res['data'] != null) {
-        final accessToken = res['data']['token']['accessToken'];
-        await initLocalStorage();
-        localStorage.setItem('accessToken', accessToken);
-
-        if (res['data']['user']['fullName'] != null) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const MainScreen()),
-            (Route<dynamic> route) => false, // removes all previous routes
-          );
-        } else {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailsScreen()),
-            (Route<dynamic> route) => false,
-          );
-        }
-      } else {
-        throw Exception('Backend error: ${response.body}');
-      }
-    } catch (e) {
-      debugPrint('Google sign-in error: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Google Sign in Terminated')),
-        );
-      }
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  /// ---------------- NEW: Apple Sign In ----------------
-  Future<void> _handleAppleSignIn() async {
-    setState(() => _isLoading = true);
-    try {
-      final credential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          // AppleIDAuthorizationScopes.fullName,
-        ],
-      );
-
-      final idToken = credential.identityToken;
-      if (idToken == null) {
-        throw Exception('No Apple identity token received');
-      }
-
-      debugPrint('Apple Identity Token: $idToken');
-
-      final response = await http.post(
-        Uri.parse(
-            'https://backend.infinz.seabed2crest.com/api/v1/auth/apple-login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'id_token': idToken}),
-      );
-
-      final res = jsonDecode(response.body);
-      if (res['success'] == true && res['data'] != null) {
-        final accessToken = res['data']['token']['accessToken'];
-        await initLocalStorage();
-        localStorage.setItem('accessToken', accessToken);
-
-        if (res['data']['user']['fullName'] != null) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const MainScreen(),
-            ),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const DetailsScreen(),
-            ),
-          );
-        }
-      } else {
-        throw Exception('Backend error: ${response.body}');
-      }
-    } catch (e) {
-      debugPrint('Apple sign-in error: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Apple Sign in was cancelled')),
-        );
-      }
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  /// ----------------------------------------------------
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                Image.asset(
-                  'assets/image/Cashmate-logo.png',
-                  width: 190,
-                  height: 120,
-                  fit: BoxFit.contain,
-                ),
-                const ProgressIndicatorWidget(
-                  currentStep: 1,
-                  stepNames: const ['Mobile', 'Verify', 'Details'],
-                  stepIcons: const [
-                    Icons.phone,
-                    Icons.check_circle,
-                    Icons.description,
-                  ],
-                ),
-                const SizedBox(height: 32),
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+    final content = SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            Image.asset(
+              'assets/image/Cashmate-logo.png',
+              width: 190,
+              height: 120,
+              fit: BoxFit.contain,
+            ),
+            const ProgressIndicatorWidget(
+              currentStep: 1,
+              stepNames: const ['Mobile', 'Verify', 'Details'],
+              stepIcons: const [
+                Icons.phone,
+                Icons.check_circle,
+                Icons.description,
+              ],
+            ),
+            const SizedBox(height: 32),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.grey.shade300),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 1,
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Login or Sign Up',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Enter your mobile number to get started',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Mobile Number',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
                       children: [
-                        const Text(
-                          'Login or Sign Up',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Enter your mobile number to get started',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        const Text(
-                          'Mobile Number',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Container(
-                              height: 48,
-                              width: 70,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'IN +91',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textMuted,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Container(
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  border:
-                                      Border.all(color: Colors.grey.shade300),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: TextField(
-                                  controller: _phoneController,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly
-                                  ],
-                                  maxLength: 10,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    height: 1.5,
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: 'Enter your number',
-                                    hintStyle: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey,
-                                    ),
-                                    prefixIcon: Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 10,
-                                        right: 8,
-                                        bottom: 2,
-                                      ),
-                                      child: Icon(
-                                        Icons.phone,
-                                        size: 20,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                    ),
-                                    border: InputBorder.none,
-                                    counterText: '',
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 14,
-                                    ),
-                                    isDense: true,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
+                        Container(
                           height: 48,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: _isValidPhoneNumber
-                                  ? Colors.indigoAccent
-                                  : AppColors.secondary, // fallback color
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: ElevatedButton(
-                              onPressed: _isValidPhoneNumber && !_isLoading
-                                  ? _sendOtp
-                                  : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors
-                                    .transparent, // Transparent to show container color
-                                shadowColor: Colors.transparent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                elevation: 0,
+                          width: 70,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'IN +91',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textMuted,
                               ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : Text(
-                                      'Send OTP',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w800,
-                                            fontStyle: FontStyle.normal,
-                                            color: Colors.white,
-                                          ),
-                                    ),
                             ),
                           ),
                         ),
-
-                        const SizedBox(height: 32),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                height: 1,
-                                color: Colors.grey.shade300,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: TextField(
+                              controller: _phoneController,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly
+                              ],
+                              maxLength: 10,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                height: 1.5,
                               ),
-                            ),
-                            // const Padding(
-                            //   padding: EdgeInsets.symmetric(horizontal: 8),
-                            //   child: Text(
-                            //     'OR CONTINUE WITH',
-                            //     style: TextStyle(
-                            //       fontSize: 12,
-                            //       color: AppColors.textMuted,
-                            //     ),
-                            //   ),
-                            // ),
-                            Expanded(
-                              child: Container(
-                                height: 1,
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Google
-                        // SizedBox(
-                        //   width: double.infinity,
-                        //   height: 40,
-                        //   child: OutlinedButton(
-                        //     onPressed: _isLoading ? null : _handleGoogleSignIn,
-                        //     style: OutlinedButton.styleFrom(
-                        //       side: BorderSide(color: Colors.grey.shade300),
-                        //       shape: RoundedRectangleBorder(
-                        //         borderRadius: BorderRadius.circular(4),
-                        //       ),
-                        //     ),
-                        //     child: const Row(
-                        //       mainAxisAlignment: MainAxisAlignment.center,
-                        //       children: [
-                        //         FaIcon(
-                        //           FontAwesomeIcons.google,
-                        //           size: 20,
-                        //           color: Colors.blue,
-                        //         ),
-                        //         SizedBox(width: 8),
-                        //         Text(
-                        //           'Continue with Google',
-                        //           style: TextStyle(
-                        //             fontSize: 16,
-                        //             fontWeight: FontWeight.normal,
-                        //             color: Colors.black,
-                        //           ),
-                        //         ),
-                        //       ],
-                        //     ),
-                        //   ),
-                        // ),
-
-                        const SizedBox(height: 12),
-
-                        // ---------------- NEW: Apple Button (only on iOS) ----------------
-                        // if (Platform.isIOS)
-                        //   SizedBox(
-                        //     width: double.infinity,
-                        //     height: 44,
-                        //     child: SignInWithAppleButton(
-                        //       onPressed: _isLoading ? null : _handleAppleSignIn,
-                        //       borderRadius:
-                        //           const BorderRadius.all(Radius.circular(4)),
-                        //       text: 'Continue with Apple',
-                        //     ),
-                        //   ),
-                        // -----------------------------------------------------------------
-
-                        // Inside your widget tree:
-                        const SizedBox(height: 16),
-                        RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.black,
-                              height: 1.5,
-                            ),
-                            children: [
-                              const TextSpan(
-                                  text: 'By continuing, you agree to our '),
-                              TextSpan(
-                                text: 'Terms and Conditions',
-                                style: const TextStyle(
-                                  color: Colors.blue,
-                                  decoration: TextDecoration.underline,
+                              decoration: InputDecoration(
+                                hintText: 'Enter your number',
+                                hintStyle: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
                                 ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () async {
-                                    final Uri url = Uri.parse(
-                                        'https://www.seabed2crest.com/privacy-policy');
-                                    try {
-                                      if (await canLaunchUrl(url)) {
-                                        await launchUrl(
-                                          url,
-                                          mode: LaunchMode.inAppWebView,
-                                        );
-                                      } else {
-                                        // Fallback: Try external application mode
-                                        await launchUrl(
-                                          url,
-                                          mode: LaunchMode.externalApplication,
-                                        );
-                                      }
-                                    } catch (e) {
-                                      // Final fallback: Show an alert or snackbar
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              'Could not open the link. Please check your browser app.'),
-                                        ),
-                                      );
-                                    }
-                                  },
-                              ),
-                              const TextSpan(text: ' and '),
-                              TextSpan(
-                                text: 'Privacy Policy',
-                                style: const TextStyle(
-                                  color: Colors.blue,
-                                  decoration: TextDecoration.underline,
+                                prefixIcon: Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 10,
+                                    right: 8,
+                                    bottom: 2,
+                                  ),
+                                  child: Icon(
+                                    Icons.phone,
+                                    size: 20,
+                                    color: Colors.grey.shade600,
+                                  ),
                                 ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () async {
-                                    final Uri url = Uri.parse(
-                                        'https://www.seabed2crest.com/privacy-policy');
-                                    try {
-                                      if (await canLaunchUrl(url)) {
-                                        await launchUrl(
-                                          url,
-                                          mode: LaunchMode.inAppWebView,
-                                        );
-                                      } else {
-                                        // Fallback: Try external application mode
-                                        await launchUrl(
-                                          url,
-                                          mode: LaunchMode.externalApplication,
-                                        );
-                                      }
-                                    } catch (e) {
-                                      // Final fallback: Show an alert or snackbar
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                              'Could not open the link. Please check your browser app.'),
-                                        ),
-                                      );
-                                    }
-                                  },
+                                border: InputBorder.none,
+                                counterText: '',
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                isDense: true,
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _isValidPhoneNumber
+                              ? Colors.indigoAccent
+                              : AppColors.secondary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ElevatedButton(
+                          onPressed: _isValidPhoneNumber && !_isLoading
+                              ? _sendOtp
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  'Send OTP',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w800,
+                                        fontStyle: FontStyle.normal,
+                                        color: Colors.white,
+                                      ),
+                                ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 1,
+                            color: Colors.grey.shade300,
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            height: 1,
+                            color: Colors.grey.shade300,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black,
+                          height: 1.5,
+                        ),
+                        children: [
+                          const TextSpan(
+                              text: 'By continuing, you agree to our '),
+                          TextSpan(
+                            text: 'Terms and Conditions',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () async {
+                                final Uri url = Uri.parse(
+                                    'https://www.seabed2crest.com/privacy-policy');
+                                try {
+                                  if (await canLaunchUrl(url)) {
+                                    await launchUrl(
+                                      url,
+                                      mode: LaunchMode.inAppWebView,
+                                    );
+                                  } else {
+                                    await launchUrl(
+                                      url,
+                                      mode: LaunchMode.externalApplication,
+                                    );
+                                  }
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          'Could not open the link. Please check your browser app.'),
+                                    ),
+                                  );
+                                }
+                              },
+                          ),
+                          const TextSpan(text: ' and '),
+                          TextSpan(
+                            text: 'Privacy Policy',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () async {
+                                final Uri url = Uri.parse(
+                                    'https://www.seabed2crest.com/privacy-policy');
+                                try {
+                                  if (await canLaunchUrl(url)) {
+                                    await launchUrl(
+                                      url,
+                                      mode: LaunchMode.inAppWebView,
+                                    );
+                                  } else {
+                                    await launchUrl(
+                                      url,
+                                      mode: LaunchMode.externalApplication,
+                                    );
+                                  }
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Could not open the link. Please check your browser app.'),
+                                    ),
+                                  );
+                                }
+                              },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 30),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(height: 30),
+          ],
         ),
+      ),
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: kIsWeb
+            ? Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1000),
+                  child: content,
+                ),
+              )
+            : content,
       ),
     );
   }

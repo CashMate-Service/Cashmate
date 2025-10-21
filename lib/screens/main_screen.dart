@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:infinz/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
@@ -13,8 +14,7 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen>
-    with TickerProviderStateMixin {
+class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = const [
@@ -65,7 +65,7 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final content = Scaffold(
       body: _pages[_selectedIndex],
 
       // FAB removed
@@ -88,7 +88,7 @@ class _MainScreenState extends State<MainScreen>
           );
         },
         activeIndex: _selectedIndex,
-        gapLocation: GapLocation.none, // ✅ No FAB, so no gap
+        gapLocation: GapLocation.none,
         notchSmoothness: NotchSmoothness.defaultEdge,
         onTap: (index) => setState(() => _selectedIndex = index),
         backgroundColor: Colors.white,
@@ -99,5 +99,14 @@ class _MainScreenState extends State<MainScreen>
         height: 80,
       ),
     );
+
+    return kIsWeb
+        ? Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 700),
+              child: content,
+            ),
+          )
+        : content;
   }
 }

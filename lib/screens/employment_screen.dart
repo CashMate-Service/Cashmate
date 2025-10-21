@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -10,7 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../utils/app_colors.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
-import 'thank_you_screen.dart'; // Add this import
+import 'thank_you_screen.dart';
 
 class EmploymentScreen extends StatefulWidget {
   const EmploymentScreen({super.key});
@@ -51,6 +53,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
   String _selectedPaymentMode = 'bank account';
 
   PlatformFile? _selectedFile;
+  String? _uploadedFileUrl; // Store the uploaded file URL
 
   @override
   void initState() {
@@ -112,6 +115,150 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
     }
   }
 
+// Generate presigned URL for file upload
+  Future<String?> _generatePresignedUrl(
+      PlatformFile file, String uploadType) async {
+    try {
+      final token = localStorage.getItem('accessToken');
+
+      // Get file extension from the PlatformFile
+      final fileType = file.extension ?? '';
+
+      final response = await http.post(
+        Uri.parse(
+            'https://backend.infinz.seabed2crest.com/api/v1/presigned-url'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'fileName': file.name,
+          'fileType': fileType,
+          'uploadType': uploadType, // Add uploadType back
+        }),
+      );
+      print(jsonDecode(response.body));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        return body['data']['url'];
+      }
+      return null;
+    } catch (e) {
+      print('Error generating presigned URL: $e');
+      return null;
+    }
+  }
+
+  // Upload file to presigned URL
+  Future<String?> _uploadFileToPresignedUrl(
+      String presignedUrl, Uint8List fileBytes, String contentType) async {
+    try {
+      final response = await http.put(
+        Uri.parse(presignedUrl),
+        headers: {
+          'Content-Type': contentType,
+        },
+        body: fileBytes,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        final uri = Uri.parse(presignedUrl);
+        final permanentUrl = '${uri.scheme}://${uri.host}${uri.path}';
+        return permanentUrl;
+      }
+      return null;
+    } catch (e) {
+      print('Error uploading file: $e');
+      return null;
+    }
+  }
+
+  // Updated file picker with upload functionality
+  Future<void> _pickAndUploadDocument() async {
+    setState(() => _isUploading = true);
+
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+        withData: true,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+
+        // Check file size
+        if (file.size > 5 * 1024 * 1024) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('File size exceeds 5MB limit')),
+          );
+          return;
+        }
+
+        if (file.bytes == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error reading file data')),
+          );
+          return;
+        }
+
+        setState(() => _selectedFile = file);
+
+        // Generate presigned URL
+        final contentType = _getContentType(file.extension ?? '');
+        print(file);
+        final presignedUrl =
+            await _generatePresignedUrl(file, "employee-salary-slip");
+
+        if (presignedUrl == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to generate upload URL')),
+          );
+          return;
+        }
+
+        final uploadedUrl = await _uploadFileToPresignedUrl(
+            presignedUrl, file.bytes!, contentType);
+
+        if (uploadedUrl != null) {
+          setState(() => _uploadedFileUrl = uploadedUrl);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('File uploaded successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to upload file')),
+          );
+          setState(() => _selectedFile = null);
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting file: $e')),
+      );
+      setState(() => _selectedFile = null);
+    } finally {
+      setState(() => _isUploading = false);
+    }
+  }
+
+  String _getContentType(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
   bool _validateForm() {
     if (selectedLoanRange.isEmpty ||
         selectedEmploymentType.isEmpty ||
@@ -120,9 +267,11 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                 _companyNameController.text.trim().isEmpty ||
                 _companyCodeController.text.trim().isEmpty ||
                 _selectedPaymentMode.isEmpty ||
-                _selectedFile == null))) {
+                _uploadedFileUrl == null))) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all required fields')),
+        const SnackBar(
+            content:
+                Text('Please fill all required fields and upload document')),
       );
       return false;
     }
@@ -155,7 +304,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
         "companyOrBusinessName": _companyNameController.text.trim(),
         "companyPinCode": _companyCodeController.text.trim(),
         "paymentMode": _selectedPaymentMode,
-        "salarySlipDocument": "http://example.com/documents/salary-slip.pdf",
+        "salarySlipDocument": _uploadedFileUrl, // Use the uploaded file URL
       });
     }
 
@@ -169,6 +318,10 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
         },
         body: jsonEncode(body),
       );
+      print('Status code: ${response.statusCode}');
+
+// Print response body (the actual JSON or text returned by the server)
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200 && mounted) {
         Navigator.of(context).pushReplacement(
@@ -187,34 +340,6 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
-    }
-  }
-
-  Future<void> _pickDocument() async {
-    setState(() => _isUploading = true);
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-        withData: true,
-      );
-
-      if (result != null && result.files.isNotEmpty) {
-        final file = result.files.first;
-        if (file.size > 5 * 1024 * 1024) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('File size exceeds 5MB limit')),
-          );
-          return;
-        }
-        setState(() => _selectedFile = file);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error selecting file: $e')),
-      );
-    } finally {
-      setState(() => _isUploading = false);
     }
   }
 
@@ -253,25 +378,6 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // CustomTextField(
-                    //   label: 'Desired Loan Amount',
-                    //   placeholder: 'Enter desired amount',
-                    //   controller: _desiredLoanAmountController,
-                    //   keyboardType: TextInputType.number,
-                    //   isRequired: true,
-                    //   prefixIcon: const Padding(
-                    //     padding: EdgeInsets.only(left: 12, top: 12),
-                    //     child: Text('₹', style: TextStyle(fontSize: 16)),
-                    //   ),
-                    // ),
-                    // const SizedBox(height: 20),
-
-                    // const Text(
-                    //   'Desired Loan Amount *',
-                    //   style:
-                    //       TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    // ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
                       value: selectedLoanRange.isNotEmpty
@@ -286,7 +392,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                         '2 to 3 Lakhs',
                         '4 to 6 lakhs',
                         '6 to 10 Lakhs',
-                        'Above 10 Lakhs'
+                        'Above 10 Lakhs'
                       ]
                           .map((range) => DropdownMenuItem(
                                 value: range,
@@ -299,7 +405,6 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                         });
                       },
                     ),
-
                     const SizedBox(height: 24),
                     DropdownButtonFormField<String>(
                       value: selectedEmploymentType.isNotEmpty
@@ -320,12 +425,17 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                               value: e, child: Text(_toTitleCase(e))))
                           .toList(),
                       onChanged: (value) {
-                        setState(() => selectedEmploymentType = value ?? '');
+                        setState(() {
+                          selectedEmploymentType = value ?? '';
+                          // Reset file when employment type changes
+                          if (value != 'salaried') {
+                            _selectedFile = null;
+                            _uploadedFileUrl = null;
+                          }
+                        });
                       },
                     ),
-
                     const SizedBox(height: 24),
-
                     if (selectedEmploymentType == 'salaried') ...[
                       DropdownButtonFormField<String>(
                         value: _selectedIncomeRange.isNotEmpty
@@ -380,28 +490,45 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                       ),
                       const SizedBox(height: 20),
                       InkWell(
-                        onTap: _isUploading ? null : _pickDocument,
+                        onTap: _isUploading ? null : _pickAndUploadDocument,
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
+                            border: Border.all(
+                                color: _uploadedFileUrl != null
+                                    ? Colors.green
+                                    : Colors.grey),
                             borderRadius: BorderRadius.circular(8),
-                            color: Colors.grey[100],
+                            color: _uploadedFileUrl != null
+                                ? Colors.green[50]
+                                : Colors.grey[100],
                           ),
                           child: Column(
                             children: [
                               _isUploading
                                   ? const CircularProgressIndicator()
-                                  : const Icon(Icons.upload_file,
-                                      size: 40, color: Colors.grey),
+                                  : Icon(
+                                      _uploadedFileUrl != null
+                                          ? Icons.check_circle
+                                          : Icons.upload_file,
+                                      size: 40,
+                                      color: _uploadedFileUrl != null
+                                          ? Colors.green
+                                          : Colors.grey),
                               const SizedBox(height: 8),
                               Text(
                                 _isUploading
                                     ? 'Uploading...'
-                                    : 'Upload Salary Slip/Bank Statement',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w500),
+                                    : _uploadedFileUrl != null
+                                        ? 'Document Uploaded Successfully'
+                                        : 'Upload Salary Slip/Bank Statement',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: _uploadedFileUrl != null
+                                      ? Colors.green[700]
+                                      : Colors.black87,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               const Text(
@@ -418,9 +545,11 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                                       Flexible(
                                         child: Text(
                                           _selectedFile!.name,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 12,
-                                            color: Colors.green,
+                                            color: _uploadedFileUrl != null
+                                                ? Colors.green[700]
+                                                : Colors.orange,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           maxLines: 1,
@@ -428,8 +557,10 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.close, size: 16),
-                                        onPressed: () => setState(
-                                            () => _selectedFile = null),
+                                        onPressed: () => setState(() {
+                                          _selectedFile = null;
+                                          _uploadedFileUrl = null;
+                                        }),
                                       ),
                                     ],
                                   ),
@@ -440,7 +571,6 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                       ),
                       const SizedBox(height: 20),
                     ],
-
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -461,7 +591,7 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                                 const TextSpan(text: 'I agree to the '),
                                 TextSpan(
                                   text: 'Terms and Conditions',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.blue,
                                     decoration: TextDecoration.underline,
                                   ),
@@ -476,7 +606,6 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                                             mode: LaunchMode.inAppWebView,
                                           );
                                         } else {
-                                          // Fallback: Try external application mode
                                           await launchUrl(
                                             url,
                                             mode:
@@ -484,7 +613,6 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                                           );
                                         }
                                       } catch (e) {
-                                        // Final fallback: Show an alert or snackbar
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           const SnackBar(
@@ -513,7 +641,6 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                                             mode: LaunchMode.inAppWebView,
                                           );
                                         } else {
-                                          // Fallback: Try external application mode
                                           await launchUrl(
                                             url,
                                             mode:
@@ -521,7 +648,6 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                                           );
                                         }
                                       } catch (e) {
-                                        // Final fallback: Show an alert or snackbar
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           const SnackBar(
@@ -542,7 +668,6 @@ class _EmploymentScreenState extends State<EmploymentScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
-
                     _isSubmitting
                         ? Center(
                             child: Image.asset('assets/image/Cashmate-logo.png',

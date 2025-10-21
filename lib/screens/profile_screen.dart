@@ -554,6 +554,60 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
+          // Edit button at the top right
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.indigoAccent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Colors.indigoAccent.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () {
+                    if (isEmploymentInfoEditing) {
+                      _updateEmploymentInfo();
+                    } else {
+                      if (mounted) {
+                        setState(() {
+                          isEmploymentInfoEditing = true;
+                        });
+                      }
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isEmploymentInfoEditing ? Icons.save : Icons.edit,
+                          size: 16,
+                          color: Colors.indigoAccent,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          isEmploymentInfoEditing ? 'Save' : 'Edit',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.indigoAccent,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           // NEW: net monthly income dropdown
           _modernDropdownTile(
             icon: Icons.monetization_on,
@@ -619,8 +673,8 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                   Expanded(
                     child: Text(
                       _salarySlipDocument.isNotEmpty
-                          ? _salarySlipDocument
-                          : 'No document uploaded',
+                          ? 'Salary Slip'
+                          : 'No Salary Slip Uploaded',
                       style: TextStyle(
                         fontSize: fontSize,
                         fontWeight: FontWeight.w600,
@@ -660,41 +714,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                     ),
                 ],
               ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerRight,
-            child: ElevatedButton.icon(
-              icon: Icon(
-                isEmploymentInfoEditing ? Icons.save : Icons.edit,
-                size: 16,
-                color: Colors.white,
-              ),
-              label: Text(
-                isEmploymentInfoEditing ? 'Save' : 'Edit',
-                style: const TextStyle(fontSize: 13, color: Colors.white),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigoAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                minimumSize: const Size(0, 32),
-              ),
-              onPressed: () {
-                if (isEmploymentInfoEditing) {
-                  _updateEmploymentInfo();
-                } else {
-                  if (mounted) {
-                    setState(() {
-                      isEmploymentInfoEditing = true;
-                    });
-                  }
-                }
-              },
             ),
           ),
         ],

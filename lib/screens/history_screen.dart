@@ -98,7 +98,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             const SizedBox(height: 32),
             const Text(
-              'Loan Suggestions',
+              'Loan Requests',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

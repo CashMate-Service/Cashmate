@@ -1,8 +1,7 @@
-// ... your imports remain unchanged
+import 'package:flutter/foundation.dart'; // for kIsWeb
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:permission_handler/permission_handler.dart';
 import 'package:another_telephony/telephony.dart';
 import 'dart:convert';
 
@@ -34,12 +33,13 @@ class _VerifyScreenState extends State<VerifyScreen> {
   final List<bool> _isActive = List.generate(6, (_) => false);
 
   bool hasStartedListening = false;
+  int resendSeconds = 6; // 6-second countdown
 
   @override
   void initState() {
     super.initState();
     _initFocusListeners();
-    _requestPermissionsAndListen();
+    startResendTimer(); // start countdown when screen loads
   }
 
   void _initFocusListeners() {
@@ -51,39 +51,6 @@ class _VerifyScreenState extends State<VerifyScreen> {
       });
     }
   }
-
-  Future<void> _requestPermissionsAndListen() async {
-    final statusSms = await Permission.sms.request();
-    // final statusPhone = await Permission.phone.request();
-
-    if (statusSms.isGranted) {
-      _startListeningSms();
-
-      // Future.delayed(const Duration(seconds: 4), () {
-      //   _checkOldOtpSms(); // Fallback
-      // });
-    }
-  }
-
-  // Future<void> _checkOldOtpSms() async {
-  //   final messages = await telephony.getInboxSms(
-  //       columns: [SmsColumn.BODY, SmsColumn.DATE]); // Read last 5 messages
-  //   final otpRegex = RegExp(r'\b\d{6}\b');
-
-  //   for (final message in messages) {
-  //     final body = message.body ?? '';
-  //     final match = otpRegex.firstMatch(body);
-  //     if (match != null) {
-  //       final otpCode = match.group(0);
-  //       print("📩 Old OTP found in inbox: $otpCode");
-
-  //       if (otpCode != null && otpCode.length == 6) {
-  //         _fillOtp(otpCode); // Auto-fill if found
-  //         break;
-  //       }
-  //     }
-  //   }
-  // }
 
   void _startListeningSms() async {
     final Telephony telephony = Telephony.instance;
@@ -97,7 +64,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
         onNewMessage: (SmsMessage message) {
           print("📩 Incoming SMS: ${message.body}");
 
-          final otpRegex = RegExp(r'\b\d{6}\b'); // Looks for 6-digit OTP
+          final otpRegex = RegExp(r'\b\d{6}\b');
           final match = otpRegex.firstMatch(message.body ?? '');
 
           if (match != null) {
@@ -179,7 +146,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
             builder: (_) =>
                 hasName ? const MainScreen() : const DetailsScreen(),
           ),
-          (Route<dynamic> route) => false, 
+          (Route<dynamic> route) => false,
         );
       } else {
         if (mounted) {
@@ -203,15 +170,59 @@ class _VerifyScreenState extends State<VerifyScreen> {
     }
   }
 
+  Future<void> resendOtp() async {
+    setState(() {
+      resendSeconds = 6; // disable resend for 6 seconds after pressing
+    });
+    startResendTimer();
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://backend.infinz.seabed2crest.com/api/v1/auth/send-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phoneNumber': widget.phoneNumber}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('OTP resent successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data['message'] ?? 'Failed to resend OTP')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error resending OTP')),
+      );
+    }
+  }
+
+  void startResendTimer() {
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      if (resendSeconds > 0) {
+        if (mounted) {
+          setState(() {
+            resendSeconds--;
+          });
+        }
+        return true;
+      }
+      return false;
+    });
+  }
+
   Widget _buildOtpField(int index) {
     return Container(
       width: 40,
       height: 45,
       decoration: BoxDecoration(
         border: Border.all(
-          color: _isActive[index] || _controllers[index].text.isNotEmpty
-              ? AppColors.primary
-              : Colors.grey.shade300,
+          color: Colors.black,
           width: 0.5,
         ),
         borderRadius: BorderRadius.circular(8),
@@ -335,8 +346,18 @@ class _VerifyScreenState extends State<VerifyScreen> {
                   child: const Text('Change Number',
                       style: TextStyle(color: Colors.blue)),
                 ),
-                const Text('Resend OTP in 6s',
-                    style: TextStyle(color: AppColors.textMuted)),
+                resendSeconds > 0
+                    ? Text(
+                        'Resend OTP in ${resendSeconds}s',
+                        style: const TextStyle(color: AppColors.textMuted),
+                      )
+                    : GestureDetector(
+                        onTap: resendOtp,
+                        child: const Text(
+                          'Resend OTP',
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                      ),
               ],
             ),
             if (errorMessage.isNotEmpty)
@@ -355,45 +376,51 @@ class _VerifyScreenState extends State<VerifyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Widget content = SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.of(context).size.height,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          child: Column(
+            children: [
+              const SizedBox(height: 32),
+              Image.asset(
+                'assets/image/Cashmate-logo.png',
+                width: 190,
+                height: 189,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(height: 16),
+              const ProgressIndicatorWidget(
+                currentStep: 2,
+                stepNames: ['Mobile', 'Verify', 'Details'],
+                stepIcons: [
+                  Icons.phone,
+                  Icons.check_circle,
+                  Icons.description,
+                ],
+              ),
+              const SizedBox(height: 32),
+              _buildOtpForm(),
+            ],
+          ),
+        ),
+      ),
+    );
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 32),
-                      Image.asset(
-                        'assets/image/Cashmate-logo.png',
-                        width: 190,
-                        height: 189,
-                        fit: BoxFit.contain,
-                      ),
-                      const SizedBox(height: 16),
-                      const ProgressIndicatorWidget(
-                        currentStep: 2,
-                        stepNames: ['Mobile', 'Verify', 'Details'],
-                        stepIcons: [
-                          Icons.phone,
-                          Icons.check_circle,
-                          Icons.description,
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                      _buildOtpForm(),
-                    ],
-                  ),
+        child: kIsWeb
+            ? Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  child: content,
                 ),
-              ),
-            );
-          },
-        ),
+              )
+            : content,
       ),
     );
   }
