@@ -1,6 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:infinz/firebase_options.dart';
 import 'dart:convert';
@@ -37,20 +36,24 @@ class CashMateApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           primaryColor: AppColors.primary,
           scaffoldBackgroundColor: Colors.white,
-          textTheme: GoogleFonts.robotoCondensedTextTheme().copyWith(
-            bodyLarge: GoogleFonts.robotoCondensed(
-              fontWeight: FontWeight.w700, // ExtraBold
-              fontStyle: FontStyle.normal,
-            ),
-            bodyMedium: GoogleFonts.robotoCondensed(
+          textTheme: const TextTheme(
+            bodyLarge: TextStyle(
+              fontFamily: 'Roboto',
               fontWeight: FontWeight.w700,
               fontStyle: FontStyle.normal,
             ),
-            bodySmall: GoogleFonts.robotoCondensed(
+            bodyMedium: TextStyle(
+              fontFamily: 'Roboto',
               fontWeight: FontWeight.w700,
               fontStyle: FontStyle.normal,
             ),
-            titleLarge: GoogleFonts.robotoCondensed(
+            bodySmall: TextStyle(
+              fontFamily: 'Roboto',
+              fontWeight: FontWeight.w700,
+              fontStyle: FontStyle.normal,
+            ),
+            titleLarge: TextStyle(
+              fontFamily: 'Roboto',
               fontWeight: FontWeight.w800,
               fontStyle: FontStyle.normal,
             ),
